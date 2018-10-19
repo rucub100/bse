@@ -14,12 +14,31 @@
 
 
 int main() {
-
-	// einfacher Test. Es sollte links oben nach dem Bootvorgang
-	// ein kleines Rechteck in weiss erscheinen (kann gelöscht werden)
-	int *ptr = (int *)0xb8000;
-	*ptr = -1;
-	while (1) ;
+    kout.clear();
+    kout << "hello osdev :)" << endl;
+    kout << "this is fun" << endl;
+    int var = 128;
+    kout << hex << var << endl;
+    kout << bin << var << endl;
+    kout << oct << var << endl;
+    kout << dec << var << endl;
+    kout << "7" << endl;
+    kout << "8" << endl;
+    kout << "9" << endl;
+    kout << "10" << endl;
+    kout << "11" << endl;
+    kout << "12" << endl;
+    kout << "13" << endl;
+    kout << "14" << endl;
+    kout << "15" << endl;
+    kout << "16" << endl;
+    kout << "17" << endl;
+    kout << "18" << endl;
+    kout << "19" << endl;
+    kout << "20" << endl;
+    kout << "21" << endl;
+    kout.flush();
+	while (1);
 
     /* Hier muess Code eingefuegt werden */
 

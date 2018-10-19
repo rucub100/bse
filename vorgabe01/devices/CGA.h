@@ -22,15 +22,35 @@ private:
     IOport index_port;      // Auswahl eines Register der Grafikkarte
     IOport data_port;       // Lese-/Schreib-Zugriff auf Register der Grafikk.
     
+    unsigned int cursor_pos_x;
+    unsigned int cursor_pos_y;
+
     // Copy Konstrutkor unterbinden
     CGA(const CGA &copy);
+
+    void flush_cursor_pos() {
+        unsigned int pos = cursor_pos_x + cursor_pos_y * COLUMNS;
+
+        //high byte
+        index_port.outb(14);
+        data_port.outb((unsigned char) (pos >> 8));
+
+        // low byte
+        index_port.outb(15);
+        data_port.outb((unsigned char) pos);
+    }
     
 public:
     const char *CGA_START;  // Startadresse des Buldschirmspeichers
     
     // Konstruktur mit Initialisierung der Ports
-    CGA () : index_port (0x3d4), data_port (0x3d5) {
+    CGA () :
+    index_port (0x3d4),
+    data_port (0x3d5),
+    cursor_pos_x (0),
+    cursor_pos_y (0) {
         CGA_START = (const char*)0xb8000;
+        flush_cursor_pos();
     }
     
     // Konstanten fuer die moeglichen Farben im Attribut-Byte.
