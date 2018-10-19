@@ -318,7 +318,7 @@ last_offset:
 	dw 0
 
 unused:
-	times bootsector+510-$ db 0
+	times bootsector+510-$ db 32 ; Leerzeichen
 
 mark:
 	dw 0xaa55
