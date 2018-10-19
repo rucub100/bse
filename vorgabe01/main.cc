@@ -38,6 +38,13 @@ int main() {
     kout << "20" << endl;
     kout << "21" << endl;
     kout.flush();
+
+    pcspk.tetris();
+
+    for(int i = 0; i < 1000000; i++);
+
+    pcspk.aerodynamic();
+
 	while (1);
 
     /* Hier muess Code eingefuegt werden */

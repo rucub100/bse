@@ -67,6 +67,8 @@ private:
     IOport data2;       // Zaehler-2 Datenregister
     IOport ppi;         // Status-Register des PPI
 
+    const int frequency_sec; // TODO: Why not 1193182?
+
     PCSPK (const PCSPK &copy); // Verhindere Kopieren
 
     // Verzoegerung um X ms (in 1ms Schritten; Min. 1ms)
@@ -78,7 +80,12 @@ private:
 public:
 
     // Konstruktor. Initialisieren der Ports.
-    PCSPK () : control(0x43), data0(0x40), data2(0x42), ppi(0x61) {}
+    PCSPK () :
+    control(0x43),
+    data0(0x40),
+    data2(0x42),
+    ppi(0x61),
+    frequency_sec (1193180) {}
     
     // Demo Sounds
     void tetris ();

@@ -26,7 +26,7 @@
  *****************************************************************************/
 void PCSPK::play (float f, int len) {
     int freq = (int)f;
-    int cntStart  =  1193180 / freq;
+    int cntStart  =  frequency_sec / freq;
     int status;
     
     
@@ -86,9 +86,21 @@ inline unsigned int PCSPK::readCounter() {
  * Parameter:       time (delay in ms)                                       *
  *****************************************************************************/
 inline void PCSPK::delay (int time) {
+    int ms = frequency_sec / 1000;
 
-    /* Hier muess Code eingefuegt werden */
-
+    for (int i = 0; i < time; i++)
+    {
+        control.outb (0x34);
+        /**
+         * 50ms = 1193180 / 1000 * 50 ~ 59659 < 65535 = 2^16-1 (max for 16 bit)
+         * This is important for the real (slow) hardware!
+         * Without the factor 50 it can miss the counter lower limit/reload 
+         * due to slow execution duration for the readCounter function.
+         */
+        data0.outb(50 * ms);
+        data0.outb((50 * ms) >> 8);
+        while (readCounter() > (49 * ms));
+    }
 }
 
 
