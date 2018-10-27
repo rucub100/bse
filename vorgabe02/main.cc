@@ -39,6 +39,12 @@ int main() {
         
         /* hier Code einfügen ('key_hit' aufrufen und Zeichen ausgeben) */
         
+        key = kb.key_hit();
+
+        if (key.valid()) {
+            kout << key.ascii();
+            kout.flush();
+        }
     }
     
     return 0;

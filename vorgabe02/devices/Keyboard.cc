@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "devices/Keyboard.h"
+#include "kernel/Globals.h"
 
 /* Tabellen fuer ASCII-Codes (Klassenvariablen) intiialisieren */
 
@@ -272,7 +273,29 @@ Keyboard::Keyboard () :
 Key Keyboard::key_hit () {
     Key invalid;  // nicht explizit initialisierte Tasten sind ungueltig
          
-    /* Hier muss Code eingefuegt werden. */
+    bool done = false;
+    unsigned char status = 0;
+
+    do {
+        // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist 
+        do {
+            status = ctrl_port.inb();
+        } while((status & outb) != 1);
+        
+        // maus?
+        if ((status & auxb) == 1) {
+            continue;
+        }
+
+        code = data_port.inb();
+        done = key_decoded();
+    } while (!done);
+    
+
+    invalid = gather;
+    gather.invalidate();
+    code = 0;
+    prefix = 0;
 
     return invalid;
 }
@@ -312,9 +335,18 @@ void Keyboard::reboot () {
  *                  und 31 (sehr langsam).                                   *
  *****************************************************************************/
 void Keyboard::set_repeat_rate (int speed, int delay) {
+    // // Eingabepuffer beschäftigt, bitte warten
+    // while ((ctrl_port.inb() & inpb) != 0);
+    // // schreibe Befehlscode
+    // data_port.outb(kbd_cmd::set_speed);
 
-    /* Hier muss Code eingefuegt werden. */
-
+    // // warte auf Bestätigung
+    // kout << "AAAAAAAAAAAAAAAAA" << endl;
+    // while ((ctrl_port.inb() & outb) != 0);
+    // unsigned char ack = data_port.inb();
+    // if (ack == kbd_reply::ack) {
+    //     data_port.outb(0x17);
+    // }
 }
 
 
