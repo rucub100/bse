@@ -15,7 +15,7 @@ class Key {
 
     unsigned char asc;      // ASCII code
     unsigned char scan;     // scan code
-    unsigned char modi;     // modifier
+    unsigned int modi;      // modifier
 
     // Bit-Masken fuer die Modifier-Tasten
     struct mbit {
@@ -27,7 +27,8 @@ class Key {
             ctrl_right  = 16,
             caps_lock   = 32,
             num_lock    = 64,
-            scroll_lock = 128
+            scroll_lock = 128,
+            del         = 256
         };
     };
 
@@ -84,6 +85,10 @@ public:
         modi = pressed ? modi | mbit::scroll_lock : modi & ~mbit::scroll_lock;
     }
 
+    void del (bool pressed) {
+        modi = pressed ? modi | mbit::del : modi & ~mbit::del;
+    }
+
     //
     // Funktionen zum Abfragen von SHIFT, ALT, CTRL usw.
     //
@@ -97,6 +102,7 @@ public:
     bool scroll_lock () { return modi & mbit::scroll_lock;      }
     bool alt ()         { return alt_left ()  | alt_right ();   }
     bool ctrl ()        { return ctrl_left () | ctrl_right ();  }
+    bool del ()         { return modi & mbit::del;              }
 
     operator char ()    { return (char) asc; }
 

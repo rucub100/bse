@@ -83,6 +83,10 @@ bool Keyboard::key_decoded () {
             case 54:
                 gather.shift (false);
                 break;
+            case 83:
+                if (prefix == prefix1)
+                    gather.del(false);
+                break;
             case 56:
                 if (prefix == prefix1)
                     gather.alt_right (false);
@@ -117,6 +121,13 @@ bool Keyboard::key_decoded () {
         case 42:
         case 54:
             gather.shift (true);
+            break;
+        case 83:
+            if (prefix == prefix1)
+                gather.del(true);
+                // TODO: reboot? (for testing only, remove later)
+                if (gather.ctrl_left() && gather.alt_left())
+                    reboot();
             break;
         case 56:
             if (prefix == prefix1)
@@ -271,33 +282,13 @@ Keyboard::Keyboard () :
  *                  ueberprueft werden kann.                                 *
  *****************************************************************************/
 Key Keyboard::key_hit () {
-    Key invalid;  // nicht explizit initialisierte Tasten sind ungueltig
-         
-    bool done = false;
-    unsigned char status = 0;
-
     do {
         // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist 
-        do {
-            status = ctrl_port.inb();
-        } while((status & outb) != 1);
-        
-        // maus?
-        if ((status & auxb) == 1) {
-            continue;
-        }
-
+        while((ctrl_port.inb() & outb) != 1);
         code = data_port.inb();
-        done = key_decoded();
-    } while (!done);
-    
+    } while (!key_decoded());
 
-    invalid = gather;
-    gather.invalidate();
-    code = 0;
-    prefix = 0;
-
-    return invalid;
+    return gather;
 }
 
 
