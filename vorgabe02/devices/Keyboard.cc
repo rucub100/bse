@@ -9,7 +9,6 @@
  *****************************************************************************/
 
 #include "devices/Keyboard.h"
-#include "kernel/Globals.h"
 
 /* Tabellen fuer ASCII-Codes (Klassenvariablen) intiialisieren */
 
@@ -165,7 +164,6 @@ bool Keyboard::key_decoded () {
                 set_led (led::num_lock, gather.num_lock ());
             }
             break;
-	
         default: // alle anderen Tasten
             // ASCII-Codes aus den entsprechenden Tabellen auslesen, fertig.
             get_ascii_code ();
@@ -326,18 +324,16 @@ void Keyboard::reboot () {
  *                  und 31 (sehr langsam).                                   *
  *****************************************************************************/
 void Keyboard::set_repeat_rate (int speed, int delay) {
-    // // Eingabepuffer beschäftigt, bitte warten
-    // while ((ctrl_port.inb() & inpb) != 0);
-    // // schreibe Befehlscode
-    // data_port.outb(kbd_cmd::set_speed);
-
-    // // warte auf Bestätigung
-    // kout << "AAAAAAAAAAAAAAAAA" << endl;
-    // while ((ctrl_port.inb() & outb) != 0);
-    // unsigned char ack = data_port.inb();
-    // if (ack == kbd_reply::ack) {
-    //     data_port.outb(0x17);
-    // }
+    // Eingabepuffer beschäftigt, bitte warten
+    while ((ctrl_port.inb() & inpb) != 0);
+    // schreibe Befehlscode
+    data_port.outb(kbd_cmd::set_speed);
+    // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist
+    while((ctrl_port.inb() & outb) != 1);
+    unsigned char ack = data_port.inb();
+    if (ack == kbd_reply::ack) {
+        data_port.outb(((delay << 5) | speed));
+    }
 }
 
 
@@ -351,7 +347,34 @@ void Keyboard::set_repeat_rate (int speed, int delay) {
  *      on:         0 = aus, 1 = an                                          *
  *****************************************************************************/
 void Keyboard::set_led (char led, bool on) {
+    // Eingabepuffer beschäftigt, bitte warten
+    while ((ctrl_port.inb() & inpb) != 0);
+    // schreibe Befehlscode
+    data_port.outb(kbd_cmd::set_led);
+    // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist
+    while((ctrl_port.inb() & outb) != 1);
+    unsigned char ack = data_port.inb();
+    if (ack == kbd_reply::ack) {
+        unsigned char _set = 0;
+        if (gather.caps_lock())
+            _set |= led::caps_lock;
+        if (gather.num_lock())
+            _set |= led::num_lock;
+        if (gather.scroll_lock())
+            _set |= led::scroll_lock;
 
-    /* Hier muss Code eingefuegt werden. */
+        switch (led) {
+            case led::caps_lock:
+                _set = on ? _set | led::caps_lock : _set & ~led::caps_lock;
+            break;
+            case led::num_lock:
+                _set = on ? _set | led::num_lock : _set & ~led::num_lock;
+            break;
+            case led::scroll_lock:
+                _set = on ? _set | led::scroll_lock : _set & ~led::scroll_lock;
+            break;
+        }
 
+        data_port.outb(_set);
+    }
 }

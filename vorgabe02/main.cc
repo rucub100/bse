@@ -15,7 +15,7 @@
 
 int main() {
     // Bildschirm loeschen.
-    kout.clear ();
+    kout.clear();
     
     // Startmeldung ausgeben
     kout << "HHUos 0.2" << endl << "=========" << endl << endl;
@@ -25,15 +25,18 @@ int main() {
     kout << "   - Sound ueber den PC-Lautsprecher" << endl;
     kout << "   - Tastatureingaben per Abfrage" << endl;
     kout << endl;
-    kout.flush ();
+    kout.flush();
     
     // Test some numbers
     kout << "Test der Zahlenausgabefunktionen" << endl;
-    kout.setpos (0,8);
+    kout.setpos(0,8);
     for (int i = 0; i < 17; i+=2)
         kout << dec << i << ' ' << hex << i << "    " << endl;
     
     kout << endl << "Tastatur mit Eingaben bitte testen" << endl;
+
+    kb.set_repeat_rate(0, 1);
+
     while (true) {
         Key key;
         
