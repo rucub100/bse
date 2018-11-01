@@ -67,7 +67,7 @@ private:
     IOport data2;       // Zaehler-2 Datenregister
     IOport ppi;         // Status-Register des PPI
 
-    const int frequency_sec; // TODO: Why not 1193182?
+    const unsigned int frequency_sec; // TODO: Why not 1193182?
 
     PCSPK (const PCSPK &copy); // Verhindere Kopieren
 

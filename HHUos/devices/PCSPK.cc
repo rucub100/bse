@@ -86,7 +86,7 @@ inline unsigned int PCSPK::readCounter() {
  * Parameter:       time (delay in ms)                                       *
  *****************************************************************************/
 inline void PCSPK::delay (int time) {
-    int ms = frequency_sec / 1000;
+    unsigned int ms = frequency_sec / 1000;
 
     for (int i = 0; i < time; i++)
     {

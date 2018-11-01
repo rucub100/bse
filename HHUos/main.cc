@@ -7,55 +7,48 @@
  *                  nachdem dieser in den Protected Mode geschaltet hat und  *
  *                  die GDT und IDT initalisiert hat.                        *
  *                                                                           *
- * Autor:           Michael Schoettner, HHU, 15.8.2016                       *
+ * Autor:           Michael Schoettner, HHU, 11.11.2016                      *
  *****************************************************************************/
 
 #include "kernel/Globals.h"
 
 
 int main() {
-    kout.clear();
-    kout << "hello osdev :)" << endl;
-    kout << "this is fun" << endl;
-    int var = 128;
-    kout << hex << var << endl;
-    kout << bin << var << endl;
-    kout << oct << var << endl;
-    kout << dec << var << endl;
-    kout << "7" << endl;
-    kout << "8" << endl;
-    kout << "9" << endl;
-    kout << "10" << endl;
-    kout << "11" << endl;
-    kout << "12" << endl;
-    kout << "13" << endl;
-    kout << "14" << endl;
-    kout << "15" << endl;
-    kout << "16" << endl;
-    kout << "17" << endl;
-    kout << "18" << endl;
-    kout << "19" << endl;
-    kout << "20" << endl;
-    kout << "21" << endl;
-    kout.flush();
-
-    pcspk.tetris();
-
-    for(int i = 0; i < 1000000; i++);
-
-    pcspk.aerodynamic();
-
-	while (1);
-
-    /* Hier muess Code eingefuegt werden */
-
     // Bildschirm loeschen.
-
+    kout.clear();
+    
     // Startmeldung ausgeben
+    kout << "HHUos 0.2" << endl << "=========" << endl << endl;
+    
+    kout << "Unterstuetzte Funktionen:" << endl;
+    kout << "   - Bildschirmausgaben" << endl;
+    kout << "   - Sound ueber den PC-Lautsprecher" << endl;
+    kout << "   - Tastatureingaben per Abfrage" << endl;
+    kout << endl;
+    kout.flush();
+    
+    // Test some numbers
+    kout << "Test der Zahlenausgabefunktionen" << endl;
+    kout.setpos(0,8);
+    for (int i = 0; i < 17; i+=2)
+        kout << dec << i << ' ' << hex << i << "    " << endl;
+    
+    kout << endl << "Tastatur mit Eingaben bitte testen" << endl;
 
-    // Bildschirmausgabe testen (Strings, hex, dec, ...)
+    kb.set_repeat_rate(0, 1);
 
-    // PC-Lautsprecher testen
+    while (true) {
+        Key key;
+        
+        /* hier Code einfügen ('key_hit' aufrufen und Zeichen ausgeben) */
+        
+        key = kb.key_hit();
 
+        if (key.valid()) {
+            kout << key.ascii();
+            kout.flush();
+        }
+    }
+    
     return 0;
  }
