@@ -29,15 +29,17 @@ int main() {
     
     // Tastatur-Unterbrechungsroutine 'einstoepseln'
     /* hier muss Code eingefuegt werden */
+    kb.plugin();
     
     // Interrupts erlauben (Tastatur)
     /* hier muss Code eingefuegt werden */
+    cpu.enable_int();
     
     // Zahlen 1-10 fortlaufend ausgeben
     while (true) {
     
         /* hier muss Code eingefuegt werden */
-        
+        kb.trigger();
     }
     
     return 0;

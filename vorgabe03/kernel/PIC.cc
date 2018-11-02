@@ -23,6 +23,23 @@ static IOport IMR1 (0x21);    // interrupt mask register von PIC 1
 static IOport IMR2 (0xa1);    // interrupt mask register von PIC 2
 
 
+void PIC::set_imr(int interrupt, bool allow) {
+    unsigned char imr;
+    unsigned char mask = 1;
+    if (0 <= interrupt &&  interrupt <= 15) {
+        imr = (interrupt < 8) ? IMR1.inb() : IMR2.inb();
+        mask = mask << (interrupt % 8);
+        mask = allow ? ~mask & imr : mask | imr;
+        if (interrupt < 8) {
+            IMR1.outb(mask);
+        } else {
+            IMR2.outb(mask);
+        }
+    } else {
+        //TODO: Bluescreen or Error -> wrong call/parameter
+    }
+}
+
 /*****************************************************************************
  * Methode:         PIC::allow                                               *
  *---------------------------------------------------------------------------*
@@ -37,9 +54,7 @@ static IOport IMR2 (0xa1);    // interrupt mask register von PIC 2
  *      interrupt:  IRQ der erlaubt werden soll                              *
  *****************************************************************************/
 void PIC::allow (int interrupt) {
-    
-    /* hier muss Code eingefuegt werden */
-    
+    set_imr(interrupt, true);
 }
 
 
@@ -53,9 +68,7 @@ void PIC::allow (int interrupt) {
  *      interrupt:  IRQ der maskiert werden soll                             *
  *****************************************************************************/
 void PIC::forbid (int interrupt) {
-
-    /* hier muss Code eingefuegt werden */
-
+    set_imr(interrupt, false);
 }
 
 
@@ -69,8 +82,14 @@ void PIC::forbid (int interrupt) {
  *      interrupt:  IRQ dessen Status erfragt werden soll                    *
  *****************************************************************************/
 bool PIC::status (int interrupt) {
-
-    /* hier muss Code eingefuegt werden */
-
+    unsigned char imr;
+    unsigned char mask = 1;
+    if (0 <= interrupt &&  interrupt <= 15) {
+        imr = (interrupt < 8) ? IMR1.inb() : IMR2.inb();
+        mask = mask << (interrupt % 8);
+        return imr & mask;
+    } else {
+        //TODO: Bluescreen or Error -> wrong call/parameter
+    }
 }
  

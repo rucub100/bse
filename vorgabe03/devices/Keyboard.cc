@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "devices/Keyboard.h"
+#include "kernel/Globals.h"
 
 /* Tabellen fuer ASCII-Codes (Klassenvariablen) intiialisieren */
 
@@ -380,6 +381,11 @@ void Keyboard::set_led (char led, bool on) {
     }
 }
 
-void Keyboard::plugin () {}
+void Keyboard::plugin () {
+    pic.allow(PIC::keyboard);
+}
 
-void Keyboard::trigger() {}
+void Keyboard::trigger() {
+    while((ctrl_port.inb() & outb) != 1);
+    data_port.inb();
+}

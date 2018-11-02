@@ -21,6 +21,9 @@ class PIC {
     
 private:
     PIC(const PIC &copy); // Verhindere Kopieren
+
+    void set_imr(int Interrupt, bool allow);
+
 public:
     PIC() {}
          
