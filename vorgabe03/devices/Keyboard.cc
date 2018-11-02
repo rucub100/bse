@@ -125,9 +125,9 @@ bool Keyboard::key_decoded () {
         case 83:
             if (prefix == prefix1)
                 gather.del(true);
-                // TODO: reboot? (for testing only, remove later)
+                // Tastenkombination als gültig akzeptieren und durchreichen für reboot
                 if (gather.ctrl_left() && gather.alt_left())
-                    reboot();
+                    done = true;
             break;
         case 56:
             if (prefix == prefix1)
@@ -387,6 +387,15 @@ void Keyboard::plugin () {
 }
 
 void Keyboard::trigger() {
-    //key_hit();
-    kout << "test" << endl;
+    key_hit();
+
+    if (gather.ctrl_left() &&
+        gather.alt_left() &&
+        gather.del()) {
+        reboot();
+    }
+
+    kout.setpos(5, 20);
+    kout << gather.ascii();
+    kout.flush();
 }
