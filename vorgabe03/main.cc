@@ -39,7 +39,7 @@ int main() {
     while (true) {
     
         /* hier muss Code eingefuegt werden */
-        kb.trigger();
+        
     }
     
     return 0;

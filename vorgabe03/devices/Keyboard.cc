@@ -383,9 +383,10 @@ void Keyboard::set_led (char led, bool on) {
 
 void Keyboard::plugin () {
     pic.allow(PIC::keyboard);
+    intdis.assign(IntDispatcher::keyboard, kb);
 }
 
 void Keyboard::trigger() {
-    while((ctrl_port.inb() & outb) != 1);
-    data_port.inb();
+    //key_hit();
+    kout << "test" << endl;
 }

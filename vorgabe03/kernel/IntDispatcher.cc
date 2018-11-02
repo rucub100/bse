@@ -29,11 +29,11 @@ extern "C" void int_disp (unsigned int slot);
  *                  aufgerufen werden.                                       *
  *****************************************************************************/
 void int_disp (unsigned int slot) {
+    ISR* isr =  intdis.report(slot);
 
-    /* hier muss Code eingefuegt werden */
-    
-    kout << "Ein Interrupt ist aufgetreten" << slot << endl;
-
+    if (isr != 0) {
+        isr->trigger();
+    }
 }
 
 
@@ -58,9 +58,7 @@ IntDispatcher::IntDispatcher () {
  *      isr:        ISR die registriert werden soll                          *
  *****************************************************************************/
 void IntDispatcher::assign (unsigned int slot, ISR& isr) {
-
-    /* hier muss Code eingefuegt werden */
-
+    map[slot] = &isr;
 }
 
 
@@ -73,7 +71,5 @@ void IntDispatcher::assign (unsigned int slot, ISR& isr) {
  *      slot:       Gibt ein registriertes ISR-Objekt oder 0 zurueck         *
  *****************************************************************************/
 ISR* IntDispatcher::report (unsigned int slot) {
-
-    /* hier muss Code eingefuegt werden */
-
+    return map[slot];
 }
