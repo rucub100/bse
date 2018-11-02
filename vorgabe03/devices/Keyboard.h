@@ -70,6 +70,8 @@ public:
    // Initialisierung der Tastatur.
    Keyboard ();
 
+   ~Keyboard ();
+
    // Tastaturabfrage (vorerst Polling)
    Key key_hit ();
 

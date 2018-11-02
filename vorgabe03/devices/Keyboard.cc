@@ -259,6 +259,7 @@ Keyboard::Keyboard () :
    set_repeat_rate (0, 0);  
 }
 
+Keyboard::~Keyboard () {}
 
 /*****************************************************************************
  * Methode:         Keyboard::key_hit                                        *
@@ -378,3 +379,7 @@ void Keyboard::set_led (char led, bool on) {
         data_port.outb(_set);
     }
 }
+
+void Keyboard::plugin () {}
+
+void Keyboard::trigger() {}
