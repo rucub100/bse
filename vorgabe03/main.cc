@@ -30,16 +30,23 @@ int main() {
     // Tastatur-Unterbrechungsroutine 'einstoepseln'
     /* hier muss Code eingefuegt werden */
     kb.plugin();
-    
+        
     // Interrupts erlauben (Tastatur)
     /* hier muss Code eingefuegt werden */
     cpu.enable_int();
-    
+
     // Zahlen 1-10 fortlaufend ausgeben
     while (true) {
     
-        /* hier muss Code eingefuegt werden */
+        cpu.disable_int();
         
+        kout.setpos(0, 8);    
+        for (int i = 0; i < 10; i++) {
+            kout << i << endl;
+        }
+        kout.flush();
+        
+        cpu.enable_int();
     }
     
     return 0;

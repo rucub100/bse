@@ -282,13 +282,17 @@ Keyboard::~Keyboard () {}
  *                  ueberprueft werden kann.                                 *
  *****************************************************************************/
 Key Keyboard::key_hit () {
-    do {
-        // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist 
+    Key invalid;
+    for (int i = 0; i < 3; i++) {
         while((ctrl_port.inb() & outb) != 1);
         code = data_port.inb();
-    } while (!key_decoded());
-
-    return gather;
+        
+        if (key_decoded()) {
+            return gather;
+        }
+    }
+    
+    return invalid;
 }
 
 
@@ -382,20 +386,22 @@ void Keyboard::set_led (char led, bool on) {
 }
 
 void Keyboard::plugin () {
-    pic.allow(PIC::keyboard);
     intdis.assign(IntDispatcher::keyboard, kb);
+    pic.allow(PIC::keyboard);
 }
 
 void Keyboard::trigger() {
-    key_hit();
+    Key key = key_hit();
 
-    if (gather.ctrl_left() &&
-        gather.alt_left() &&
-        gather.del()) {
-        reboot();
+    if (key.valid()) {
+        if (key.ctrl_left() &&
+            key.alt_left() &&
+            key.del()) {
+            reboot();
+        }
+    
+        kout.setpos(5, 10);
+        kout << key.ascii();
+        kout.flush();
     }
-
-    kout.setpos(5, 20);
-    kout << gather.ascii();
-    kout.flush();
 }

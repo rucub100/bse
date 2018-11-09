@@ -90,6 +90,7 @@ bool PIC::status (int interrupt) {
         return imr & mask;
     } else {
         //TODO: Bluescreen or Error -> wrong call/parameter
+        return false;
     }
 }
  

@@ -29,10 +29,28 @@ extern "C" void int_disp (unsigned int slot);
  *                  aufgerufen werden.                                       *
  *****************************************************************************/
 void int_disp (unsigned int slot) {
+    // https://wiki.osdev.org/8259_PIC#Spurious_IRQs
+    if (slot == 39 || slot == 47) { // Master or Slave - IRQ7
+        if (pic.status(slot - 32)) {
+            return;
+        }
+    }
+
     ISR* isr =  intdis.report(slot);
 
     if (isr != 0) {
         isr->trigger();
+    } else {
+        cpu.disable_int();
+        kout.clear();
+        for (int i = 0; i < 16; i++) {
+            if (!pic.status(i)) {
+                kout << "int " << i << endl;
+            }
+        }
+
+        kout << "ERROR: ISR " << slot << " not assigned!" << endl;
+        cpu.halt();
     }
 }
 
