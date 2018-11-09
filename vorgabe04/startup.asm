@@ -166,7 +166,7 @@ setup_idt:
 	mov	eax,wrapper_0	; ax: niederwertige 16 Bit
 	mov	ebx,eax
 	shr	ebx,16      ; bx: hoeherwertige 16 Bit
-	mov	ecx,256     ; Zaehler
+	mov	ecx,255     ; Zaehler
 .loop:	add	[idt+8*ecx+0],ax
 	adc	[idt+8*ecx+6],bx
 	dec	ecx

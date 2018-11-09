@@ -12,7 +12,7 @@
  *****************************************************************************/
 #include "kernel/CPU.h"
 #include "kernel/Globals.h"
-#include "kernel/IntDispatcher.h"
+#include "kernel/interrupts/IntDispatcher.h"
 
 
 extern "C" void int_disp (unsigned int slot);

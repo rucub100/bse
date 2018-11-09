@@ -40,5 +40,7 @@ int main() {
     // Anwendungscode aufrufen
     application.main();
     
-    return 0;
+    // Ein Betriebssystem darf nicht enden,
+    // sonst ist das Verhalten undefiniert!
+    while(1);
  }
