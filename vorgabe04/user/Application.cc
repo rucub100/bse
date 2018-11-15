@@ -22,7 +22,13 @@ static unsigned int stack[3][1024];
  * Beschreibung:    main-Methode der Anwendung.                              *
  *****************************************************************************/
 void Application::main () {
-    
+/*  Loop a ( ... );
+    Da wir noch keine Speicherverwaltung haben können wir nicht "new"
+    benutzen. Deswegen einfach eine lokale Variable vom Datentyp Loop
+    verwenden. 
+ 
+ */
+
     /* 
      * Hier muss Code eingefuegt werden 
      *

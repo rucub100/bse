@@ -40,7 +40,9 @@ Coroutine_start:
 ;
 ; C Prototyp: void Coroutine_switch (struct CoroutineState* regs_now,
 ;                                    struct CoroutineState* reg_then);
-
+;
+; Achtung: Die Parameter werden von rechts nach links uebergeben.
+;
 Coroutine_switch:
 
 ; *
