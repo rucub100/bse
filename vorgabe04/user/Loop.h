@@ -19,6 +19,6 @@ class Loop : public Coroutine {
 
 /* Hier muss die Koroutine Loop als Klasse definiert werden. */
 
-}
+};
 
 #endif
