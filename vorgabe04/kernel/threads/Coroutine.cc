@@ -123,9 +123,7 @@ void Coroutine::yield () {
  * Beschreibung:    Aktivierung der Koroutine.                               *
 *****************************************************************************/
 void Coroutine::start () {
-    
-    /* hier muss Code eingefügt werden */
-    
+    Coroutine_start(&this->regs);
 }
 
 
@@ -135,7 +133,5 @@ void Coroutine::start () {
  * Beschreibung:    Verweis auf nächste Koroutine setzen.                    *
  *****************************************************************************/
 void Coroutine::setNext (Chain* next) {
-
-    /* hier muss Code eingefügt werden */
-
+    this->next = next;
 }

@@ -15,3 +15,13 @@
 
 
 /* Hier folgt die Implementierung der Methode(n) der Klasse Loop */
+
+void Loop::run() {
+    for (unsigned int i = 0; i < 1000000000; i++) {
+        kout.setpos(_x, _y);
+        kout << count;
+        kout.flush();
+        count++;
+        yield();
+    }
+}

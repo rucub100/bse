@@ -33,6 +33,9 @@ Coroutine_start:
 ; * Hier muss Code eingefuegt werden
 ; *
 
+mov eax, [esp + 4]
+mov esp, [eax + esp_offset]
+ret
 
 ; COROUTINE_SWITCH : Coroutinenumschaltung. Der aktuelle Registersatz wird
 ;                    gesichert und der Registersatz der neuen Coroutine

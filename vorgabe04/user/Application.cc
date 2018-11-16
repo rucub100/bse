@@ -22,18 +22,13 @@ static unsigned int stack[3][1024];
  * Beschreibung:    main-Methode der Anwendung.                              *
  *****************************************************************************/
 void Application::main () {
-/*  Loop a ( ... );
-    Da wir noch keine Speicherverwaltung haben können wir nicht "new"
-    benutzen. Deswegen einfach eine lokale Variable vom Datentyp Loop
-    verwenden. 
- 
- */
+    Loop a (&stack[0][1024], 0, 15);
+    Loop b (&stack[1][1024], 30, 15);
+    Loop c (&stack[2][1024], 60, 15);
 
-    /* 
-     * Hier muss Code eingefuegt werden 
-     *
-     * Die 3 Koroutinen einrichten, verketten und die 1. starten
-     *
-     */
+    a.setNext(&b);
+    b.setNext(&c);
+    c.setNext(&a);
 
+    a.start();
 }

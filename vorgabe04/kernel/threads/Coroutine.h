@@ -34,6 +34,8 @@ private:
 
 public:
     Coroutine (unsigned int* stack);
+
+    virtual ~Coroutine() {}
     
     // Coroutine aktivieren
     void start ();
