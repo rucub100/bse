@@ -29,10 +29,6 @@
 
 Coroutine_start:
 
-; *
-; * Hier muss Code eingefuegt werden
-; *
-
 mov eax, [esp + 4]
 mov esp, [eax + esp_offset]
 ret
@@ -48,7 +44,16 @@ ret
 ;
 Coroutine_switch:
 
-; *
-; * Hier muss Code eingefuegt werden
-; *
-
+mov eax, [esp + 4]
+mov [eax + ebx_offset], ebx
+mov [eax + esi_offset], esi
+mov [eax + edi_offset], edi
+mov [eax + ebp_offset], ebp
+mov [eax + esp_offset], esp
+mov eax, [esp + 8]
+mov ebx, [eax + ebx_offset]
+mov esi, [eax + esi_offset]
+mov edi, [eax + edi_offset]
+mov ebp, [eax + ebp_offset]
+mov esp, [eax + esp_offset]
+ret

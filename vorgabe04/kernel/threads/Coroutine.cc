@@ -111,9 +111,7 @@ Coroutine::Coroutine (unsigned int* stack) {
  * Beschreibung:    CPU freiwillig abgeben.                                  *
  *****************************************************************************/
 void Coroutine::yield () {
-
-    /* hier muss Code eingefügt werden */
-
+    Coroutine_switch(&regs, &((Coroutine*)next)->regs);
 }
 
 
@@ -123,7 +121,7 @@ void Coroutine::yield () {
  * Beschreibung:    Aktivierung der Koroutine.                               *
 *****************************************************************************/
 void Coroutine::start () {
-    Coroutine_start(&this->regs);
+    Coroutine_start(&regs);
 }
 
 

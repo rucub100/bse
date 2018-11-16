@@ -18,10 +18,12 @@
 
 void Loop::run() {
     for (unsigned int i = 0; i < 1000000000; i++) {
+        cpu.disable_int();
         kout.setpos(_x, _y);
-        kout << count;
+        kout << "Loop " << _id  << ": " << count;
         kout.flush();
         count++;
+        cpu.enable_int();
         yield();
     }
 }

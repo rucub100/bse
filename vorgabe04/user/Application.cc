@@ -22,9 +22,9 @@ static unsigned int stack[3][1024];
  * Beschreibung:    main-Methode der Anwendung.                              *
  *****************************************************************************/
 void Application::main () {
-    Loop a (&stack[0][1024], 0, 15);
-    Loop b (&stack[1][1024], 30, 15);
-    Loop c (&stack[2][1024], 60, 15);
+    Loop a (&stack[0][1024], 1, 0, 15);
+    Loop b (&stack[1][1024], 2, 30, 15);
+    Loop c (&stack[2][1024], 3, 60, 15);
 
     a.setNext(&b);
     b.setNext(&c);

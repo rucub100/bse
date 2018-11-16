@@ -22,12 +22,14 @@ private:
     Loop (const Loop &copy); // Verhindere Kopieren
 
     unsigned int count;
+    unsigned int _id;
     unsigned int _x;
     unsigned int _y;
 
 public:
-    Loop(unsigned int* stack, unsigned int x, unsigned int y) 
+    Loop(unsigned int* stack, unsigned int id, unsigned int x, unsigned int y) 
     : Coroutine(stack), count (0) {
+        _id=id;
         _x = x;
         _y = y;
     }
