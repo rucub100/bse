@@ -282,15 +282,20 @@ Keyboard::~Keyboard () {}
  *                  ueberprueft werden kann.                                 *
  *****************************************************************************/
 Key Keyboard::key_hit () {
-    Key invalid;
-    for (int i = 0; i < 3; i++) {
-        while((ctrl_port.inb() & outb) != 1);
-        code = data_port.inb();
-        
-        if (key_decoded()) {
-            return gather;
-        }
-    }
+    Key invalid;  // nicht explizit initialisierte Tasten sind ungueltig
+    
+    int control;
+
+    do {
+        control = ctrl_port.inb();
+    } while ((control & outb) == 0);
+    
+    // Byte einlesen
+    code = (unsigned char) data_port.inb();
+    
+    // Eingabe von PS/2 Maus ignorieren
+    if (!(control & auxb) && key_decoded())
+        return gather;
     
     return invalid;
 }
