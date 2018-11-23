@@ -20,7 +20,7 @@ static unsigned int appl_stack[1024];
 
 int main() {
     // Bildschirm loeschen.
-    kout.clear ();
+    kout.clear();
     
     // Startmeldung ausgeben
     kout << "HHUos 0.5" << endl << "=========" << endl << endl;
@@ -31,21 +31,21 @@ int main() {
     kout << "   - Tastatureingaben per Interrupt" << endl;
     kout << "   - kooperatives Multitasking" << endl;
     kout << endl;
-    kout.flush ();
+    kout.flush();
 
     
     // Tastatur-Unterbrechungsroutine einstoepseln
-    kb.plugin ();
+    kb.plugin();
 
     // Interrupts erlauben (Tastatur)
-    cpu.enable_int ();
+    cpu.enable_int();
 
     // Anwendung im Scheduler anmelden
     Application application(&appl_stack[1024]);
     scheduler.Scheduler::ready(application);
     
     // Scheduler starten
-    scheduler.Scheduler::schedule ();
+    scheduler.Scheduler::schedule();
 
     return 0;
  }
