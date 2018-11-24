@@ -101,6 +101,8 @@ void kickoff (Thread* object) {
  *      stack       Stack für die neue Koroutine                             *
  *****************************************************************************/
 Thread::Thread (unsigned int* stack) {
+    static unsigned _id = 0;
+    tid = _id++;
     Thread_init (&regs, stack, kickoff, this);
  }
 

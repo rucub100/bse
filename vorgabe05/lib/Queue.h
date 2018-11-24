@@ -29,6 +29,18 @@ public:
     void enqueue (Chain* item);
     Chain* dequeue ();
     void remove (Chain*);
+
+    unsigned int size() {
+        unsigned int cnt = 0;
+        Chain *tmp = head;
+
+        while(tmp != 0) {
+            tmp = tmp->next;
+            cnt++;
+        }
+
+        return cnt;
+    }
  };
 
 #endif

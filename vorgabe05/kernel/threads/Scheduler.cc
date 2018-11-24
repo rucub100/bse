@@ -12,9 +12,8 @@
 #include "kernel/threads/Scheduler.h"
 #include "kernel/threads/IdleThread.h"
 
-
-/* hier soll der Idle-Thread als globale Variable definiert werden */
-
+static unsigned int idleStackDummy[1024];
+IdleThread idle(&idleStackDummy[1024]);
 
 /*****************************************************************************
  * Methode:         Scheduler::Scheduler                                     *
@@ -23,9 +22,7 @@
  *                  Thread in der readyQueue.                                *
  *****************************************************************************/
 Scheduler::Scheduler () {
-
-    /* hier muss Code eingefuegt werden */
-    
+    readyQeueu.enqueue(&idle);
 }
 
     
@@ -35,9 +32,7 @@ Scheduler::Scheduler () {
  * Beschreibung:    Scheduler starten. Wird nur einmalig aus main.cc gerufen.*
  *****************************************************************************/
 void Scheduler::schedule () {
-
-    /* hier muss Code eingefuegt werden */
-
+    start(*((Thread*)readyQeueu.dequeue()));
 }
 
 
@@ -50,9 +45,7 @@ void Scheduler::schedule () {
  *      that        Einzutragender Thread                                    *
  *****************************************************************************/
 void Scheduler::ready (Thread& that) {
-
-    /* hier muss Code eingefuegt werden */
-
+    readyQeueu.enqueue(&that);
 }
 
 
@@ -65,9 +58,7 @@ void Scheduler::ready (Thread& that) {
  *                  nicht in der readyQueue.                                 *
  *****************************************************************************/
 void Scheduler::exit () {
-
-    /* hier muss Code eingefuegt werden */
-
+    dispatch(*((Thread*)readyQeueu.dequeue()));
 }
 
 
@@ -83,9 +74,12 @@ void Scheduler::exit () {
  *      that        Zu terminierender Thread                                 *
  *****************************************************************************/
 void Scheduler::kill (Thread& that) {
-
-    /* hier muss Code eingefuegt werden */
-
+    if (&that != active()) {
+        readyQeueu.remove(&that);
+    } else {
+        // a thread must not kill itself
+        exit();
+    }
 }
 
 
@@ -98,7 +92,7 @@ void Scheduler::kill (Thread& that) {
  *                  mithilfe des Dispatchers erfolgen.                       *
  *****************************************************************************/
 void Scheduler::yield () {
-
-    /* hier muss Code eingefuegt werden */
-
+    readyQeueu.enqueue(active());
+    Thread* next = (Thread*) readyQeueu.dequeue();
+    dispatch(*next);
 }

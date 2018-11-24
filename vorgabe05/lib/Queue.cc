@@ -27,30 +27,41 @@ Chain* Queue::dequeue () {
     if (head != 0) {
         if (head->next == *tail) {
             tail = &head;
-        } 
+            head = head->next;
+        } else if (head == *tail) {
+            head = 0;
+        } else {
+            head = head->next;
+        }
         
-        head = head->next;
     }
 
     return removed;
 }
 
 void Queue::remove (Chain* item) {
-    if (item == 0) {
-        return;
-    }
-    else if (item == head) {
+    if (item == head) {
         dequeue();
+    } else if (item == 0 || head == 0 || head == *tail) {
+        return;
     }
 
     Chain* tmp = head;
 
-    while(tmp->next != item && tmp->next != 0) {
+    while(tmp->next != *tail && tmp->next != item) {
         tmp = tmp->next;
     }
 
     // Item gefunden?!
     if (tmp->next == item) {
-        tmp->next = item->next;
+        if (tmp->next != *tail) {
+            tmp->next = item->next;
+        } else {
+            Chain* p = head;
+            while(p->next != tmp) 
+                p = p->next;
+            tail = &p->next;
+            tmp->next = 0;
+        }
     }
 }

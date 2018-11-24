@@ -32,7 +32,7 @@ int main() {
     kout << "   - kooperatives Multitasking" << endl;
     kout << endl;
     kout.flush();
-    
+
     // Tastatur-Unterbrechungsroutine einstoepseln
     kb.plugin();
 

@@ -26,6 +26,17 @@ public:
     
     void run () {
         while (1) {
+            static unsigned int idleTicks = 0;
+            cpu.disable_int();
+            int x, y;
+            kout.getpos(x, y);
+            kout.flush();
+            kout.setpos(60, 0);
+            kout.flush();
+            kout << "IDLE: " << ++idleTicks << endl;
+            kout.flush();
+            kout.setpos(x, y);
+            cpu.enable_int();
             scheduler.yield ();
         }
     }
