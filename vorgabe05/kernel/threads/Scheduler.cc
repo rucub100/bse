@@ -6,7 +6,7 @@
  * Beschreibung:    Implementierung eines einfachen Zeitscheiben-Schedulers. *
  *                  Rechenbereite Threads werden in 'readQueue' verwaltet.   *
  *                                                                           *
- * Autor:           Michael, Schoettner, HHU, 22.8.2016                      *
+ * Autor:           Michael, Schoettner, HHU, 23.11.2018                     *
  *****************************************************************************/
 
 #include "kernel/threads/Scheduler.h"
@@ -59,9 +59,10 @@ void Scheduler::ready (Thread& that) {
 /*****************************************************************************
  * Methode:         Scheduler::exit                                          *
  *---------------------------------------------------------------------------*
- * Beschreibung:    Thread ist fertig und terminiert sich selbst. Er traegt  *
- *                  sich hierzu aus der readyQueue aus und dann wird auf den *
- *                  naechsten Thread mithilfe des Dispatchers umgeschaltet.  *
+ * Beschreibung:    Thread ist fertig und terminiert sich selbst. Hier muss  *
+ *                  nur auf den naechsten Thread mithilfe des Dispatchers    *
+ *                  umgeschaltet werden. Der aktuell laufende Thread ist     *
+ *                  nicht in der readyQueue.                                 *
  *****************************************************************************/
 void Scheduler::exit () {
 
@@ -93,8 +94,8 @@ void Scheduler::kill (Thread& that) {
  *---------------------------------------------------------------------------*
  * Beschreibung:    CPU freiwillig abgeben und Auswahl des naechsten Threads.*
  *                  Naechsten Thread aus der readyQueue holen, den aktuellen *
- *                  aus der readyQueue austragen und auf den naechsten       *
- *                  mithilfe des Dispatchers umschalten.                     *
+ *                  in die readyQueue wieder eintragen. Das Umschalten soll  *
+ *                  mithilfe des Dispatchers erfolgen.                       *
  *****************************************************************************/
 void Scheduler::yield () {
 

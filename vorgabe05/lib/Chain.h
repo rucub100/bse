@@ -20,7 +20,7 @@ private:
 public:
     Chain* next;
 
-    Chain() {}
+    Chain() { next = 0; }
 };
 
 #endif

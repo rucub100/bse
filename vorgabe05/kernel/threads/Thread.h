@@ -40,12 +40,11 @@ public:
     // Thread aktivieren
     void start ();
 
-    // Thread wieder anstossen
+    // Umschalten auf Thread 'next'
     void switchTo (Thread& next);
 
     // Methode des Threads, muss in Sub-Klasse implementiert werden
     virtual void run () = 0;
-    
  };
 
 #endif

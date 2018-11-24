@@ -32,7 +32,6 @@ int main() {
     kout << "   - kooperatives Multitasking" << endl;
     kout << endl;
     kout.flush();
-
     
     // Tastatur-Unterbrechungsroutine einstoepseln
     kb.plugin();
@@ -46,6 +45,8 @@ int main() {
     
     // Scheduler starten
     scheduler.Scheduler::schedule();
+
+    while(1);
 
     return 0;
  }
