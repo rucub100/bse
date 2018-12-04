@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 #include "devices/LFBgraphics.h"
+#include "user/hhu.cc" 
 
 /*****************************************************************************
  * Methode:         LFBgraphics::drawMonoBitmap                              *
@@ -155,5 +156,15 @@ void LFBgraphics::drawLine(int x1, int y1, int x2, int y2, int col) {
         e2 = err;
         if (e2 >-dx) { err -= dy; x1 += sx; }
         if (e2 < dy) { err += dx; y1 += sy; }
+    }
+}
+
+void LFBgraphics::drawSprite() {
+    for (int x = 0; x < hhu.width; x++) {
+        for (int y = 0; y < hhu.height; y++) {
+            int pos = hhu.bytes_per_pixel * (x + y * hhu.width);
+            int col = hhu.pixel_data[pos] | (hhu.pixel_data[pos] << 8) | (hhu.pixel_data[pos] << 16);
+            drawPixel(x, y, col);
+        }
     }
 }

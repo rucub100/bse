@@ -40,6 +40,7 @@ public:
     void drawString       (Font &fnt, int x,  int y,  int col, char* str, int len);
     void drawRect         (int x, int y, int width, int height, int col);
     void drawLine         (int x1, int y1, int x2, int y2, int coll);
+    void drawSprite       ();
 };
 
 #endif

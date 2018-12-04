@@ -66,6 +66,7 @@ void VBEdemo::run () {
     vesa.drawRect(10, 10, 500, 50, 0x00733E);
     vesa.drawLine(10, 60, 510, 10, 0xFF0000);
     vesa.drawLine(10, 10, 510, 60, 0xFF0000);
+    vesa.drawSprite();
 
     while (1) ;
     

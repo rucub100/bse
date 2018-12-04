@@ -12,6 +12,7 @@
 
 #include "kernel/Globals.h"
 #include "user/VBEdemo.h"
+#include "user/VBEfonts.h"
 
 
 // Stack fuer den Hauptthread der Anwendung
@@ -45,6 +46,9 @@ int main() {
     VBEdemo demoApp(&appl_stack[1024]);
     scheduler.Scheduler::ready(demoApp);
     
+    // VBEfonts demoApp(&appl_stack[1024]);
+    // scheduler.Scheduler::ready(demoApp);
+
     // Scheduler starten
     scheduler.Scheduler::schedule ();
 
