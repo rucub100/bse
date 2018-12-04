@@ -115,3 +115,45 @@ void LFBgraphics::drawPixel(int x, int y, int col) {
             return;
     }
 }
+
+/*****************************************************************************
+ * Methode:         LFBgraphics::drawRect                                    *
+ *---------------------------------------------------------------------------*
+ * Parameter:       x, y    Koordinaten der linken oberen Ecke               *
+ *                  width   Breite des Rechtecks                             *
+ *                  height  Hoehe des Rechtecks                              *
+ *                  col     Farbe                                            *
+ *                                                                           *
+ * Beschreibung:    Zeichnen eines Rechtecks.                                *
+ *****************************************************************************/
+void LFBgraphics::drawRect(int x, int y, int width, int height, int col) {    
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            drawPixel(x + j, y + i, col);
+        }
+    }
+}
+
+/*****************************************************************************
+ * Methode:         LFBgraphics::drawLine                                    *
+ *---------------------------------------------------------------------------*
+ * Parameter:       x1, y1      Startpunkt-Koordinaten                       *
+ *                  x2, y2      Endpunkt-Koordinaten                         *
+ *                  col         Farbe                                        *
+ *                                                                           *
+ * Beschreibung:    Zeichnen einer Linie.                                    *
+ *****************************************************************************/
+void LFBgraphics::drawLine(int x1, int y1, int x2, int y2, int col) {    
+    // http://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C
+    int dx = (x2-x1) >= 0 ? (x2-x1) : -(x2-x1), sx = x1<x2 ? 1 : -1;
+    int dy = (y2-y1) >= 0 ? (y2-y1) : -(y2-y1), sy = y1<y2 ? 1 : -1; 
+    int err = (dx>dy ? dx : -dy)/2, e2;
+ 
+    for(;;){
+        drawPixel(x1, y1, col);
+        if (x1==x2 && y1==y2) break;
+        e2 = err;
+        if (e2 >-dx) { err -= dy; x1 += sx; }
+        if (e2 < dy) { err += dx; y1 += sy; }
+    }
+}

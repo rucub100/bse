@@ -63,7 +63,10 @@ void VBEdemo::drawColors () {
 void VBEdemo::run () {
 
     drawColors();
-    
+    vesa.drawRect(10, 10, 500, 50, 0x00733E);
+    vesa.drawLine(10, 60, 510, 10, 0xFF0000);
+    vesa.drawLine(10, 10, 510, 60, 0xFF0000);
+
     while (1) ;
     
     // selbst terminieren
