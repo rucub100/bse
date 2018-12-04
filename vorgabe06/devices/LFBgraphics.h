@@ -13,6 +13,8 @@
 #ifndef __LFBgraphics_include__
 #define __LFBgraphics_include__
 
+#include "devices/fonts/Fonts.h"
+
 
 // Hilfsfunktionen um Farbwerte fuer einen Pixel zu erzeugen
 #define RGB_24(r,g,b) (unsigned int) ((r << 16) + (g << 8) + b )
@@ -23,6 +25,8 @@ class LFBgraphics {
 private:
     LFBgraphics (const LFBgraphics &copy);  // Verhindere Kopieren
 
+    // Hilfsfunktion fuer drawString
+    void drawMonoBitmap   (int x,  int y, unsigned int width, unsigned int height, unsigned char* bitmap, int col);
 
 public:
     int xres, yres;         // Aufloesung in Pixel
@@ -31,10 +35,9 @@ public:
 
     
     LFBgraphics () {}
-    
+   
     void drawPixel        (int x,  int y,  int col);
-
-    /* hier koennen weitere eigene Grafikfunktionen implementiert werden */
+    void drawString       (Font &fnt, int x,  int y,  int col, char* str, int len);
 };
 
 #endif
