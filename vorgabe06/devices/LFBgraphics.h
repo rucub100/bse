@@ -41,6 +41,7 @@ public:
     void drawRect         (int x, int y, int width, int height, int col);
     void drawLine         (int x1, int y1, int x2, int y2, int coll);
     void drawSprite       ();
+    void drawCircle       (int x, int y, int r, int col);
 };
 
 #endif

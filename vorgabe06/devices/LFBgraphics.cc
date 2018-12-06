@@ -168,3 +168,38 @@ void LFBgraphics::drawSprite() {
         }
     }
 }
+
+void LFBgraphics::drawCircle(int x0, int y0, int r, int col) {
+    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm#C_example
+    int x = r-1;
+    int y = 0;
+    int dx = 1;
+    int dy = 1;
+    int err = dx - (r << 1);
+
+    while (x >= y)
+    {
+        drawPixel(x0 + x, y0 + y, col);
+        drawPixel(x0 + y, y0 + x, col);
+        drawPixel(x0 - y, y0 + x, col);
+        drawPixel(x0 - x, y0 + y, col);
+        drawPixel(x0 - x, y0 - y, col);
+        drawPixel(x0 - y, y0 - x, col);
+        drawPixel(x0 + y, y0 - x, col);
+        drawPixel(x0 + x, y0 - y, col);
+
+        if (err <= 0)
+        {
+            y++;
+            err += dy;
+            dy += 2;
+        }
+        
+        if (err > 0)
+        {
+            x--;
+            dx += 2;
+            err += dx - (r << 1);
+        }
+    }
+}
