@@ -39,14 +39,6 @@
 #include "kernel/Globals.h"
 #include "kernel/MemMgmt.h"
 
-
-// zeigt an, ob die Speicherverwaötung initialisiert wurde.
-unsigned int mm_initialized=0;
-
-// max. Groesse des Heaps
-unsigned int mm_heap_size=0;
-
-
 /*****************************************************************************
  * Prozedur:        mm_init                                                  *
  *---------------------------------------------------------------------------*
@@ -57,7 +49,8 @@ unsigned int mm_heap_size=0;
  *                  Wird automatisch aufgerufen, sobald eine Funktion der    *
  *                  Speicherverwaltung erstmalig gerufen wird.               *
  *****************************************************************************/
-void mm_init() {
+
+void MemMgmt::mm_init() {
     // mem_size ist in Globals definiert!
     total_mem = MEM_SIZE_DEF;
     
@@ -80,6 +73,8 @@ void mm_init() {
         
         // Startadresse abziehen
         mm_heap_size = total_mem - MEM_START;
+
+        mm_alloc_cnt = 0;
 /*
         kout << "BIOS call war erfolgteich" << endl;
         kout << "   CX=" << BC_params->CX << endl;
@@ -88,7 +83,12 @@ void mm_init() {
 */
     }
  
-    
+    // Frei-Liste initialisieren
+    free_list = (FreeBlockMeta*)MEM_START;
+    free_list->len = mm_heap_size - sizeof(FreeBlockMeta);
+    free_list->next = 0;
+    next_fit = free_list;
+
     // Speicherverwaltung ist initialisiert
     mm_initialized = 1;
 }
@@ -111,19 +111,76 @@ void mm_dump_free_list() {
  *---------------------------------------------------------------------------*
  * Beschreibung:    Einen neuen Speicherblock allozieren.                    * 
  *****************************************************************************/
-void * mm_alloc(unsigned int req_size) {
-   
-    kout << "   mm_alloc: req_size=" << dec << req_size << "B";
-    
+void* MemMgmt::mm_alloc(unsigned int req_size) {
+    void* mem = 0;
+    cpu.disable_int();
+    kout.setpos(2, 20);
+    kout << "   mm_alloc: req_size=" << dec << req_size << " Bytes          ";
+    kout.flush();
+    cpu.enable_int();
     
     // Noch nicht initialisiert?
     if (mm_initialized==0)
         mm_init();
-    
- 
-    /* hier muss Code eingefuegt werden */
 
-    return (void*) 0;
+    // 4Byte alignierte Belegung!
+    if (req_size < 4) {
+        req_size = 4; // Damit nach delete min sizeof(FreeBlockMeta) 
+    } else {
+// TODO
+    }
+ 
+    /* TODO: Next Fit Implementierung */
+    // Finde nächsten passenden freien Block
+    while (next_fit->len < req_size && 
+        next_fit->next >= (void*)MEM_START) {
+            next_fit = next_fit->next;
+    }
+
+    // Gefunden?
+    if (next_fit->len >= req_size) {
+        // Genug platz um aufzuspalten?
+        if (next_fit->len - (req_size + 4) >= MIN_FREE_BLOCK_SIZE) {
+            // belege Speicher
+            next_fit->len -= (req_size + 4);
+            mem = (char*)next_fit + sizeof(FreeBlockMeta) + next_fit->len;
+            *((unsigned int*)mem) = req_size; // setze allozierte Länge
+            mem = (unsigned int*)mem + 1; // überspringe Längenangabe
+        } else { // Nein -> Freier Block wird komplett belegt => Zeiger umbiegen
+            if (next_fit == free_list) {
+                free_list = free_list->next;
+            } else {
+                // Finde parent
+                FreeBlockMeta* parent = free_list;
+                
+                while (parent->next != next_fit) {
+                    parent = parent->next;
+                }
+
+                parent->next = next_fit->next;
+            }
+
+            // Freien Block in belegten Block "umwandeln"
+            next_fit->len += 4;
+            mem = (unsigned int*)next_fit + 1;
+        }
+    } else {
+        // fatal error -> no ram space
+        cpu.disable_int();
+        kout.clear();
+        kout << "FATAL: NO RAM SPACE LEFT!!!" << endl;
+        cpu.halt();
+    }
+
+    // Update next_fit
+    if (next_fit->next >= (void*)MEM_START) {
+        next_fit = next_fit->next;
+    } else {
+        next_fit = free_list;
+    }   
+
+    mm_alloc_cnt++;
+    return mem;
 }
 
 
@@ -132,11 +189,11 @@ void * mm_alloc(unsigned int req_size) {
  *---------------------------------------------------------------------------*
  * Beschreibung:    Einen Speicherblock freigeben.                           *
  *****************************************************************************/
-void mm_free(void *ptr) {
+void MemMgmt::mm_free(void *ptr) {
     kout << "   mm_free: ptr= " << hex << (unsigned int)ptr << endl;
 
     /* hier muss Code eingefuegt werden */
-
+    mm_alloc_cnt--;
 }
 
 
@@ -145,17 +202,17 @@ void mm_free(void *ptr) {
  * und entsprechend 'mm_alloc' und 'mm_free' aufrufen.                       *
  *****************************************************************************/
 void* operator new ( size_t size ) {
-     return mm_alloc(size);
+     return mm.mm_alloc(size);
 }
 
 void* operator new[]( size_t count ) {
-    return mm_alloc(count);
+    return mm.mm_alloc(count);
 }
 
 void operator delete ( void* ptr )  {
-    mm_free(ptr);
+    mm.mm_free(ptr);
 }
  
 void operator delete[] ( void* ptr ) {
-    mm_free(ptr);
+    mm.mm_free(ptr);
 }

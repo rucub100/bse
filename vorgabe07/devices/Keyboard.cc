@@ -405,7 +405,7 @@ void Keyboard::trigger() {
             reboot();
         }
     
-        kout.setpos(5, 10);
+        kout.setpos(40, 6);
         kout << key.ascii();
         kout.flush();
     }

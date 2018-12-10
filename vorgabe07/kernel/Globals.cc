@@ -20,6 +20,7 @@ IntDispatcher    intdis;     // Unterbrechungsverteilung
 Scheduler        scheduler;  // Scheduler
 BIOS             bios;       // Schnittstelle zum 16-Bit BIOS
 unsigned int     total_mem;  // RAM total
+MemMgmt          mm;  // Speicherverwaltung
 
 //
 // Geräte-Treiber-Klassen

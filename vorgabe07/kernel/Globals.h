@@ -15,6 +15,7 @@
 #include "kernel/threads/Scheduler.h"
 #include "kernel/interrupts/IntDispatcher.h"
 #include "kernel/BIOS.h"
+#include "kernel/MemMgmt.h"
 #include "devices/PCSPK.h"
 #include "devices/CGA_Stream.h"
 #include "devices/Keyboard.h"
@@ -30,6 +31,7 @@ extern IntDispatcher    intdis;     // Unterbrechungsverteilung
 extern Scheduler        scheduler;  // Scheduler
 extern BIOS             bios;       // Schnittstelle zum 16-Bit BIOS
 extern unsigned int     total_mem;  // RAM total
+extern MemMgmt          mm;         // Speicherverwaltung
 
 //
 // Geräte-Treiber-Klassen
