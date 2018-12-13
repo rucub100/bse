@@ -204,8 +204,6 @@ void MemMgmt::mm_free(void *ptr) {
     kout.flush();
     cpu.enable_int();
 
-    /* hier muss Code eingefuegt werden */
-
     // Finde letzten freien Block VOR dem belegten Block
     FreeBlockMeta* prev = free_list;
 
@@ -218,8 +216,26 @@ void MemMgmt::mm_free(void *ptr) {
     if (prev == free_list) {
         // Belegter Block VOR dem ersten FREE Eintrag?
         if (prev < ptr) {
-            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev->next;
-            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+            // Verschmelze mit vorangegangenen Freien Block, 
+            // falls sich keine weiteren belegten Blöcke dazwischen befinden
+            if (ptr == (char*)prev + prev->len + sizeof(FreeBlockMeta) + 4) {
+                prev->len += *((unsigned int*)ptr - 1) + 4;
+                // Falls nun der nächste freie Block ebenfalls anliegt,
+                // dann verschmelze auch diesen
+                if (prev->next == prev + prev->len + 4) {
+                    prev->len += prev->next->len + 4;
+                    prev->next = prev->next->next;
+                }
+            } else {
+                FreeBlockMeta* tmp = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+                tmp->next = prev->next;
+                prev->next = tmp;
+
+                if ((char*)tmp->next == (char*)tmp + tmp->len + 4) {
+                    tmp->len += tmp->next->len + 4;
+                    tmp->next = tmp->next->next;
+                }
+            }
         } else { // Neuer Anfang der free_list
             ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev;
             free_list = (FreeBlockMeta*)((unsigned int*)ptr - 1);

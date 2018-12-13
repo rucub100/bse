@@ -91,8 +91,7 @@ class MemMgmt {
             do {
                 avail += acc->len;
                 acc = acc->next;
-                meta += sizeof(FreeBlockMeta);
-                used += 4;
+                meta += 4; // Zähle nicht 4Byte für next, damit Summe aufgeht!
             } while (acc >= (void*) MEM_START);
 
             used -= avail;
