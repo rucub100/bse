@@ -10,20 +10,28 @@
 #include "kernel/Globals.h"
 
 void MemTest::run() {
-    static unsigned int i = 1;
     unsigned int avail, used, meta;
     
-    while (i < 1000) {
-        char* x = new char[132117];
-        i++;
+    char* addr[1000];
+
+    // mm.mm_usage(avail, meta, used);
+    // kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "    " << endl;
+
+    for (int i = 0; i < 1000; i++) {
+        addr[i] = new char[1];
         mm.mm_usage(avail, meta, used);
-        kout << endl << "Avail: " << avail << "  Used: " << used << "  Meta: " << meta << "    " << endl;
-        scheduler.yield();
+        kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "                  " << endl;
+        for(int c = 0; c < 100000; c++);
     }
 
-    char* y = new char[600];
-    mm.mm_usage(avail, meta, used);
-    kout << endl << "Avail: " << avail << "  Used: " << used << "  Meta: " << meta << "    " << endl;
+    for(int c = 0; c < 200000000; c++);
+
+    for (int i = 0; i < 1000; i++) {
+        delete addr[i];
+        mm.mm_usage(avail, meta, used);
+        kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "                  " << endl;
+        for(int c = 0; c < 100000; c++);
+    }
 
     kout << "FINISHED" << endl;
 

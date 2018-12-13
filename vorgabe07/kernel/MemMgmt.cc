@@ -85,7 +85,7 @@ void MemMgmt::mm_init() {
  
     // Frei-Liste initialisieren
     free_list = (FreeBlockMeta*)MEM_START;
-    free_list->len = mm_heap_size - sizeof(FreeBlockMeta);
+    free_list->len = mm_heap_size - sizeof(unsigned int); // Speicherplatz für next kann belegt werden!
     free_list->next = 0;
     next_fit = free_list;
 
@@ -114,7 +114,7 @@ void mm_dump_free_list() {
 void* MemMgmt::mm_alloc(unsigned int req_size) {
     void* mem = 0;
     cpu.disable_int();
-    kout.setpos(2, 20);
+    kout.setpos(2, 16);
     kout << "   mm_alloc: req_size=" << dec << req_size << " Bytes          ";
     kout.flush();
     cpu.enable_int();
@@ -124,16 +124,24 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
         mm_init();
 
     // 4Byte alignierte Belegung!
-    if (req_size < 4) {
-        req_size = 4; // Damit nach delete min sizeof(FreeBlockMeta) 
+    if (req_size < MIN_USED_BLOCK_SIZE) {
+        req_size = MIN_USED_BLOCK_SIZE; // Damit nach delete min sizeof(FreeBlockMeta) 
+        /**
+         * Bei 4 Byte + 4Byte für len wird nach delete ein FreeBlockMeta Objekt
+         * mit len=0 erzeugt! Deshalb könnte man bei delete die anliegenden freien
+         * Blöcke verschmelzen. Sollten keine freien Blöcke direkt anliegen,
+         * so kann man eine Defragmentierung implementieren (z.B. im IDLE Zustand).
+        */
     } else {
-// TODO
+        if (req_size % 4 != 0) {
+            req_size += (4 - (req_size % 4));
+        }
     }
  
-    /* TODO: Next Fit Implementierung */
+    /* Next Fit Implementierung */
     // Finde nächsten passenden freien Block
     while (next_fit->len < req_size && 
-        next_fit->next >= (void*)MEM_START) {
+        (unsigned int)next_fit->next >= MEM_START) {
             next_fit = next_fit->next;
     }
 
@@ -161,7 +169,7 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
             }
 
             // Freien Block in belegten Block "umwandeln"
-            next_fit->len += 4;
+            // next_fit->len += 4; NICHT ervorderlich, da len in FreeBlockMeta den Platz für next mitberechnet
             mem = (unsigned int*)next_fit + 1;
         }
     } else {
@@ -173,7 +181,7 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
     }
 
     // Update next_fit
-    if (next_fit->next >= (void*)MEM_START) {
+    if ((unsigned int)next_fit->next >= MEM_START) {
         next_fit = next_fit->next;
     } else {
         next_fit = free_list;
@@ -190,9 +198,43 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
  * Beschreibung:    Einen Speicherblock freigeben.                           *
  *****************************************************************************/
 void MemMgmt::mm_free(void *ptr) {
-    kout << "   mm_free: ptr= " << hex << (unsigned int)ptr << endl;
+    cpu.disable_int();
+    kout.setpos(2, 18);
+    kout << "   mm_free: ptr= " << hex << (unsigned int)ptr << " Bytes      ";
+    kout.flush();
+    cpu.enable_int();
 
     /* hier muss Code eingefuegt werden */
+
+    // Finde letzten freien Block VOR dem belegten Block
+    FreeBlockMeta* prev = free_list;
+
+    while (prev < ptr && 
+        (unsigned int)prev->next >= MEM_START &&
+        prev->next < ptr) {
+            prev = prev->next;
+    }
+
+    if (prev == free_list) {
+        // Belegter Block VOR dem ersten FREE Eintrag?
+        if (prev < ptr) {
+            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev->next;
+            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+        } else { // Neuer Anfang der free_list
+            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev;
+            free_list = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+        }
+    } else {
+        // Unterscheiden, ob prev am Ende der free_list ist
+        if (prev->next < ptr) {
+            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = 0;
+            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+        } else {
+            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev->next;
+            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+        }
+    }
+
     mm_alloc_cnt--;
 }
 

@@ -92,6 +92,7 @@ class MemMgmt {
                 avail += acc->len;
                 acc = acc->next;
                 meta += sizeof(FreeBlockMeta);
+                used += 4;
             } while (acc >= (void*) MEM_START);
 
             used -= avail;
