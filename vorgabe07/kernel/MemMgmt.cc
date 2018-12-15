@@ -151,7 +151,7 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
         if (next_fit->len - (req_size + 4) >= MIN_FREE_BLOCK_SIZE) {
             // belege Speicher
             next_fit->len -= (req_size + 4);
-            mem = (char*)next_fit + sizeof(FreeBlockMeta) + next_fit->len;
+            mem = (char*)next_fit + next_fit->len + 4;
             *((unsigned int*)mem) = req_size; // setze allozierte Länge
             mem = (unsigned int*)mem + 1; // überspringe Längenangabe
         } else { // Nein -> Freier Block wird komplett belegt => Zeiger umbiegen
@@ -204,6 +204,10 @@ void MemMgmt::mm_free(void *ptr) {
     kout.flush();
     cpu.enable_int();
 
+    if ((char*)ptr < (char*)MEM_START) {
+        // TODO: Bluescreen?!
+    }
+
     // Finde letzten freien Block VOR dem belegten Block
     FreeBlockMeta* prev = free_list;
 
@@ -213,21 +217,22 @@ void MemMgmt::mm_free(void *ptr) {
             prev = prev->next;
     }
 
+    FreeBlockMeta* tmp = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+
     if (prev == free_list) {
         // Belegter Block VOR dem ersten FREE Eintrag?
         if (prev < ptr) {
             // Verschmelze mit vorangegangenen Freien Block, 
             // falls sich keine weiteren belegten Blöcke dazwischen befinden
-            if (ptr == (char*)prev + prev->len + sizeof(FreeBlockMeta) + 4) {
+            if (ptr == (char*)prev + prev->len + 8) {
                 prev->len += *((unsigned int*)ptr - 1) + 4;
                 // Falls nun der nächste freie Block ebenfalls anliegt,
                 // dann verschmelze auch diesen
-                if (prev->next == prev + prev->len + 4) {
+                if ((char*)prev->next == (char*)prev + prev->len + 4) {
                     prev->len += prev->next->len + 4;
                     prev->next = prev->next->next;
                 }
             } else {
-                FreeBlockMeta* tmp = (FreeBlockMeta*)((unsigned int*)ptr - 1);
                 tmp->next = prev->next;
                 prev->next = tmp;
 
@@ -237,17 +242,36 @@ void MemMgmt::mm_free(void *ptr) {
                 }
             }
         } else { // Neuer Anfang der free_list
-            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev;
-            free_list = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+            tmp->next = prev;
+            free_list = tmp;
         }
     } else {
         // Unterscheiden, ob prev am Ende der free_list ist
-        if (prev->next < ptr) {
-            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = 0;
-            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
-        } else {
-            ((FreeBlockMeta*)((unsigned int*)ptr - 1))->next = prev->next;
-            prev->next = (FreeBlockMeta*)((unsigned int*)ptr - 1);
+        if ((char*)prev->next < (char*)ptr) {
+            // Falls ptr direkt an prev anliegt, dann vergroessere prev
+            if ((char*)ptr == (char*)prev + prev->len + 8) {
+                prev->len += tmp->len + 4;
+            } else {
+                tmp->next = 0;
+                prev->next = tmp;
+            }
+        } else { // Block liegt zwischen prev und prev->next
+            // Falls ptr direkt an prev anliegt, dann vergroessere prev
+            if ((char*)ptr == (char*)prev + prev->len + 8) {
+                prev->len += tmp->len + 4;
+
+                if ((char*)prev->next == (char*)prev + prev->len + 4) {
+                    prev->len += prev->next->len + 4;
+                    prev->next = prev->next->next;
+                }
+            } else if ((char*)tmp + tmp->len + 4 == (char*)prev->next) { // oder falls an ptr an prev->next anliegt
+                tmp->len += prev->next->len + 4;
+                tmp->next = prev->next;
+                prev->next = tmp;
+            } else {
+                tmp->next = prev->next;
+                prev->next = tmp;
+            }
         }
     }
 
