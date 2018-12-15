@@ -12,7 +12,7 @@
 ;*                  Unterstuetzung des Bluescreens.                           *
 ;*                                                                            *
 ;* Autor:           Olaf Spinczyk, TU Dortmund                                *
-;*                  Michael Schoettner, HHU, 11.12.2018                       *
+;*                  Michael Schoettner, HHU, 15.12.2018                       *
 ;******************************************************************************
 
 ; Multiboot-Konstanten
@@ -38,6 +38,7 @@ MULTIBOOT_EAX_MAGIC	equ	0x2badb002
 [GLOBAL paging_on]
 [GLOBAL get_page_fault_address]
 [GLOBAL get_int_esp]
+[GLOBAL invalidate_tlb_entry]
 
 ; Michael Schoettner:
 ; Nachfolgender label steht fuer das 'delete', welches jetzt implementiert
@@ -146,8 +147,8 @@ _fini_done:
 ; C Prototyp: void get_int_esp (unsigned int** esp);
 get_int_esp:
     mov	eax,[4+esp]     ; esp
-    mov ebx, int_esp
-    mov [eax], ebx
+    mov ecx, int_esp
+    mov [eax], ecx
     ret
 
 ; Default Interrupt Behandlung
@@ -300,6 +301,18 @@ __cxa_pure_virtual:
 ;_ZdlPv:
 	ret
 
+
+; Invalidiert eine Seite im TLB. Dies notwendig, falls eine
+; die Bits Present, R/W in einem Seitentabelleneintrag  
+; geaendert werden. Falls die Seite im TLB gespeichert ist
+; wuerde die MMU nichts von diesen Aenderungen erkennen,
+; da die MMU dann nicht auf die Seitentabellen zugreift.
+invalidate_tlb_entry:
+	mov 	eax, [esp+4]
+ 	invlpg 	[eax]
+	ret
+
+
 [SECTION .data]
 
 ;  'interrupt descriptor table' mit 256 Eintraegen.
@@ -351,7 +364,7 @@ gdt:
 
     dw  0xFFFF      ; 4Gb - (0x100000*0x1000 = 4Gb)
     dw	0x4000      ; 0x4000 -> base address=0x24000 (siehe BIOS.cc)
-    dw  09A02h      ; 0x2 -> base address =0x24000 (siehe BIOS.cc) und code read/exec;
+   	dw  09A02h      ; 0x2 -> base address =0x24000 (siehe BIOS.cc) und code read/exec;
     dw  0008Fh      ; granularity=4096, 16-bit code
 
 gdt_48:

@@ -38,7 +38,15 @@ int main() {
     
     // Paging initialisieren (1:1 Adressuebersetzung, nur als Schutzmechanismus)
     pg_init();
-    *((int*)0x0)=0;
+    // NPE test
+    //*((int*)0x0)=0;
+
+    unsigned int* p = pg_alloc_page();
+    *p = 3;
+    kout << "this works" << endl;
+    pg_write_protect_page(p);
+    *p = 4;
+    kout << "this does not work!" << endl;
 
     // Tastatur-Unterbrechungsroutine einstoepseln
     kb.plugin ();

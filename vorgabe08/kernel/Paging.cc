@@ -44,7 +44,7 @@
  *                        Ende: Letzte Adresse des phys. Speichers           *
  *                                                                           *
  *                                                                           *
- * Autor:           Michael Schoettner, 13.12.2018                           *
+ * Autor:           Michael Schoettner, 15.12.2018                           *
  *****************************************************************************/
 #include "kernel/Globals.h"
 #include "kernel/Paging.h"
@@ -67,9 +67,10 @@
 #define LST_ALLOCABLE_PAGE  0x3FF000
 
 
-// Externe Funktion in startup.asm zum Einschalten des Paging
+// Externe Funktionen in startup.asm 
 extern "C" {
-    void paging_on (unsigned int* p_pdir);
+    void paging_on (unsigned int* p_pdir);		// Paging einschalten
+    void invalidate_tlb_entry(unsigned int* ptr);	// Page in TLB invalid.
 }
 
 
@@ -81,7 +82,6 @@ extern "C" {
  *****************************************************************************/
  unsigned int * pg_alloc_page() {
     unsigned int *p_page;
-    unsigned int page_address;
     
     p_page = (unsigned int*) PAGE_TABLE;
     
@@ -107,28 +107,35 @@ extern "C" {
  *                  Dies fuer das Debugging nuetzlich.                       *
  *****************************************************************************/
 void pg_write_protect_page(unsigned int *p_page) {
+    invalidate_tlb_entry(p_page); // in startup.asm
+    
+    int idx = (unsigned int)p_page >> 12;
+   
+    // ausserhalb Page ?
+    if (idx < 1 || idx > 1023) return ;
 
-   /* hier muss Code eingefügt werden */
+    p_page = (unsigned int*) PAGE_TABLE;
+    p_page += idx;
+    *p_page = (*p_page & ~PAGE_WRITEABLE);
 }
 
 
 /*****************************************************************************
- * Funktion:        pg_free_page                                             *
+ * Funktion:        pg_notpresent_page                                       *
  *---------------------------------------------------------------------------*
- * Beschreibung:    Gibt eine 4 KB Seite frei. Es wird hierbei das RESERVED- *
- *                  Bit geloescht.                                           *
+ * Beschreibung:    Seite als ausgelagert markieren. Nur fuer Testzwecke.    *
  *****************************************************************************/
-void pg_free_page(unsigned int *p_page) {
-    int idx = (unsigned int)p_page >> 12;
+void pg_notpresent_page(unsigned int *p_page) {
+    invalidate_tlb_entry(p_page); // in startup.asm
     
+    int idx = (unsigned int)p_page >> 12;
+   
     // ausserhalb Page ?
     if (idx < 1 || idx > 1023) return ;
-    
-    // Eintrag einlesen und aendern (PAGE_WRITEABLE loeschen)
+
     p_page = (unsigned int*) PAGE_TABLE;
     p_page += idx;
-    
-    *p_page = ((idx << 12) | PAGE_WRITEABLE | PAGE_PRESENT);
+    *p_page = (*p_page & ~PAGE_PRESENT);
 }
 
 
@@ -165,10 +172,8 @@ void pg_init() {
     // Eintraege 1-1023: Direktes Mapping (1:1) auf 4 MB Pages (ohne Page-Table)
     for (i = 1; i < 1024; i++) {
         p_pdir ++;
-        // ausserhalb der physikalischen Speichers 
         if (i>num_pages)
             *p_pdir = ( (i<<22) | PAGE_BIGSIZE);
-        // innerhalb der physikalischen Speichers 
         else
             *p_pdir = ( (i<<22) | PAGE_BIGSIZE | PAGE_WRITEABLE | PAGE_PRESENT);
     }
@@ -178,7 +183,9 @@ void pg_init() {
     // 1. Page-Table
     //
     p_page = (unsigned int*) PAGE_TABLE;
-    *p_page = 0; // ersten Eintrag explizit setzen; NPE-Schutz
+    
+    // ersten Eintrag loeschen -> not present, write protected -> Null-Pointer abfangen
+    *p_page = PAGE_RESERVED | PAGE_PRESENT;
 
     // Eintraege 1-1023: Direktes Mapping (1:1) auf 4 KB page frames
     for (i = 1; i < 1024; i++) {
