@@ -14,11 +14,9 @@
 #include "user/VBEdemo.h"
 #include "user/VBEfonts.h"
 #include "user/MemTest.h"
-#include "kernel/MemMgmt.h"
 
 // Stack fuer den Hauptthread der Anwendung
 static unsigned int appl_stack[1024];
-
 
 int main() {
     // Bildschirm loeschen.
@@ -34,13 +32,14 @@ int main() {
     kout << "   - kooperatives Multitasking" << endl;
     kout << "   - VESA ueber BIOS" << endl;
 
-    // Teste Bluescreen
-    asm("int $3");
-
     // Initialisiere (Heap-)Speicherverwaltung
     mm.mm_init();
     kout << "   - Speicherverwaltung: " << total_mem << " Bytes!" << endl;
     
+    // Paging initialisieren (1:1 Adressuebersetzung, nur als Schutzmechanismus)
+    pg_init();
+    *((int*)0x0)=0;
+
     // Tastatur-Unterbrechungsroutine einstoepseln
     kb.plugin ();
 

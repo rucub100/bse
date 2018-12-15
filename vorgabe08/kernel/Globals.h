@@ -16,11 +16,11 @@
 #include "kernel/interrupts/IntDispatcher.h"
 #include "kernel/BIOS.h"
 #include "kernel/MemMgmt.h"
+#include "kernel/Paging.h"
 #include "devices/PCSPK.h"
 #include "devices/CGA_Stream.h"
 #include "devices/Keyboard.h"
 #include "devices/VESA.h"
-
 
 //
 // Kernel-Klassen

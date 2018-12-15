@@ -178,9 +178,10 @@ void pg_init() {
     // 1. Page-Table
     //
     p_page = (unsigned int*) PAGE_TABLE;
-    
+    *p_page = 0; // ersten Eintrag explizit setzen; NPE-Schutz
+
     // Eintraege 1-1023: Direktes Mapping (1:1) auf 4 KB page frames
-    for (i = 0; i < 1024; i++) {
+    for (i = 1; i < 1024; i++) {
         p_page ++;
         
         // Seiten unter FST_ALLOCABLE_PAGE reservieren, damit diese nicht

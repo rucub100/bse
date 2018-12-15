@@ -18,7 +18,7 @@ void MemTest::run() {
     kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "    " << endl;
 
     for (int i = 0; i < 1000; i++) {
-        addr[i] = new char[131984];
+        addr[i] = new char[125000];
         mm.mm_usage(avail, meta, used);
         kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "                  " << endl;
     }

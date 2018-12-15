@@ -39,10 +39,10 @@
 #define __MemMgmt_include__
 
 
-#define MEM_START           0x200000        // Startadresse des Heaps
+#define MEM_START           0x400000        // Startadresse des Heaps
 #define MEM_SIZE_DEF        4*1024*1024     // Default-Groesse des Heaps
 #define MIN_FREE_BLOCK_SIZE 64              // min. Groesse eines freien Blocks (Strategie beim Allozieren)
-#define MIN_USED_BLOCK_SIZE 12 //?
+#define MIN_USED_BLOCK_SIZE 12              // min. Groesse eines belegten Blocks
 
 
 struct FreeBlockMeta {
