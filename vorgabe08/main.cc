@@ -34,6 +34,9 @@ int main() {
     kout << "   - kooperatives Multitasking" << endl;
     kout << "   - VESA ueber BIOS" << endl;
 
+    // Teste Bluescreen
+    asm("int $3");
+
     // Initialisiere (Heap-)Speicherverwaltung
     mm.mm_init();
     kout << "   - Speicherverwaltung: " << total_mem << " Bytes!" << endl;
