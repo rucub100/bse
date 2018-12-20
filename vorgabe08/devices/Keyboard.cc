@@ -309,6 +309,10 @@ Key Keyboard::key_hit () {
 void Keyboard::reboot () {
     int status;
 
+    // Schutz für erste Seite ausschalten, um NPE beim folgenden BIOS-Aufruf
+    // zu verhindern
+    pg_allow_page((unsigned int*) 0x472);
+
     // Dem BIOS mitteilen, dass das Reset beabsichtigt war
     // und kein Speichertest durchgefuehrt werden muss.
     *(unsigned short*) 0x472 = 0x1234;
@@ -404,7 +408,7 @@ void Keyboard::trigger() {
             key.del()) {
             reboot();
         }
-    
+
         kout.setpos(40, 6);
         kout << key.ascii();
         kout.flush();

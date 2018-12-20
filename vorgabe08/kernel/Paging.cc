@@ -112,13 +112,25 @@ void pg_write_protect_page(unsigned int *p_page) {
     int idx = (unsigned int)p_page >> 12;
    
     // ausserhalb Page ?
-    if (idx < 1 || idx > 1023) return ;
+    if (idx > 1023) return ;
 
     p_page = (unsigned int*) PAGE_TABLE;
     p_page += idx;
     *p_page = (*p_page & ~PAGE_WRITEABLE);
 }
 
+void pg_allow_page(unsigned int *p_page) {
+    invalidate_tlb_entry(p_page); // in startup.asm
+    
+    int idx = (unsigned int)p_page >> 12;
+   
+    // ausserhalb Page ?
+    if (idx > 1023) return ;
+
+    p_page = (unsigned int*) PAGE_TABLE;
+    p_page += idx;
+    *p_page = (*p_page | PAGE_WRITEABLE | PAGE_PRESENT );
+}
 
 /*****************************************************************************
  * Funktion:        pg_notpresent_page                                       *
@@ -131,7 +143,7 @@ void pg_notpresent_page(unsigned int *p_page) {
     int idx = (unsigned int)p_page >> 12;
    
     // ausserhalb Page ?
-    if (idx < 1 || idx > 1023) return ;
+    if (idx > 1023) return ;
 
     p_page = (unsigned int*) PAGE_TABLE;
     p_page += idx;

@@ -59,6 +59,8 @@ extern unsigned int * pg_alloc_page();
 // Schreibschutz auf Seite setzen -> fuer debugging nuetzlich
 extern void pg_write_protect_page(unsigned int *p_page);
 
+extern void pg_allow_page(unsigned int *p_page);
+
 // gibt eine 4 KB Page frei
 extern void pg_free_page(unsigned int *p_page);
 
