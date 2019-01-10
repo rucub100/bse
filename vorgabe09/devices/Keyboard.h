@@ -13,7 +13,7 @@
 
 #include "devices/Key.h"
 #include "kernel/IOport.h"
-#include "kernel/ISR.h"
+#include "kernel/interrupts/ISR.h"
 
 class Keyboard : public ISR {
     
@@ -66,6 +66,7 @@ private:
     
     
 public:
+   char lastKey;
 
    // Initialisierung der Tastatur.
    Keyboard ();

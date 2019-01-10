@@ -294,9 +294,11 @@ Key Keyboard::key_hit () {
     code = (unsigned char) data_port.inb();
     
     // Eingabe von PS/2 Maus ignorieren
-    if (!(control & auxb) && key_decoded())
+    if (!(control & auxb) && key_decoded()) {
+        lastKey = gather.ascii();
         return gather;
-    
+    }
+
     return invalid;
 }
 

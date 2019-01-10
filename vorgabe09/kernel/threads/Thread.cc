@@ -96,4 +96,54 @@ void ThreadState_init (struct ThreadState* regs, unsigned int* stack,
     regs->efl = (void*)flags;
 }
 
+/*****************************************************************************
+ * Funktion:        kickoff                                                  *
+ *---------------------------------------------------------------------------*
+ * Beschreibung:    Funktion zum Starten einer Korutine. Da diese Funktion   *
+ *                  nicht wirklich aufgerufen, sondern nur durch eine        *
+ *                  geschickte Initialisierung des Stacks der Koroutine      *
+ *                  angesprungen wird, darf er nie terminieren. Anderenfalls *
+ *                  wuerde ein sinnloser Wert als Ruecksprungadresse         * 
+ *                  interpretiert werden und der Rechner abstuerzen.         *
+ *****************************************************************************/
+void kickoff (Thread* object) {
+    object->run();
+    
+    // object->run() kehrt hoffentlich nie hierher zurueck
+    for (;;) {}
+}
 
+
+/*****************************************************************************
+ * Methode:         Thread::Thread                                     *
+ *---------------------------------------------------------------------------*
+ * Beschreibung:    Initialer Kontext einer Koroutine einrichten.            *
+ *                                                                           *
+ * Parameter:                                                                *
+ *      stack       Stack für die neue Koroutine                             *
+ *****************************************************************************/
+Thread::Thread (unsigned int* stack) {
+    static unsigned _id = 0;
+    tid = _id++;
+    ThreadState_init (&regs, stack, kickoff, this);
+ }
+
+
+/*****************************************************************************
+ * Methode:         Thread::Thread                                     *
+ *---------------------------------------------------------------------------*
+ * Beschreibung:    CPU freiwillig abgeben.                                  *
+ *****************************************************************************/
+void Thread::switchTo (Thread& next) {
+    Thread_switch(&regs, &(next.regs));
+}
+
+
+/*****************************************************************************
+ * Methode:         Thread::start                                         *
+ *---------------------------------------------------------------------------*
+ * Beschreibung:    Aktivierung der Koroutine.                               *
+*****************************************************************************/
+void Thread::start () {
+    Thread_start(&regs);
+}

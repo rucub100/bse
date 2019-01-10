@@ -13,7 +13,7 @@
 #ifndef __IntDispatcher_include__
 #define __IntDispatcher_include__
 
-#include "kernel/ISR.h"
+#include "kernel/interrupts/ISR.h"
 
 
 class IntDispatcher {

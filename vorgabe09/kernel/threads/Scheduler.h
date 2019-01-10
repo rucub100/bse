@@ -53,7 +53,7 @@ public:
 
     // Wartet ein Thread auf CPU-Zuteilung?
     bool isThreadWaiting () {
-        return readyQueue.count()>0 ? true : false;
+        return readyQueue.size() > 0 ? true : false;
     }
     
     // CPU soll aktuellem Thread entzogen werden (Vorbereitungen)

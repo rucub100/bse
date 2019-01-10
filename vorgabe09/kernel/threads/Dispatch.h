@@ -12,7 +12,6 @@
  *                  zurueck.                                                 *
  *                                                                           *
  * Autor:           Olaf Spinczyk, TU Dortmund                               *
- *                  Michael Schoettner, HHU, 30.8.2016                       *
  *****************************************************************************/
 
 #ifndef __dispatch_include__
@@ -28,23 +27,23 @@ private:
     // Variablen fuer erzwungenen Thread-Wechsel in startup.asm
     unsigned int *regs_life;
     unsigned int *regs_next;
-    
+
 
     Dispatcher(const Dispatcher &copy); // Verhindere Kopieren
 
 public:
     // Initialisierung.
     Dispatcher ();
-    
+
     // Thread erstmalig aufstarten
     void start (Thread& first);
-    
+
     // CPU auf next umschalten
     void dispatch (Thread& next);
-    
+
     // welcher Thread hat aktuell die CPU
     Thread* active () { return life; }
-    
+
     // Thread-Wechsel soll erzwungen werden. 
     // Wird von prepare_preemption des Schedulers gerufen.
     bool prepare_thread_switch (Thread* next);

@@ -5,7 +5,7 @@
  *---------------------------------------------------------------------------*
  * Beschreibung:    Globale Variablen des Systems.                           *
  *                                                                           *
- * Autor:           Michael Schoettner, 1.1.2017                             *
+ * Autor:           Michael Schoettner, 27.12.2016                           *
  *****************************************************************************/
 #ifndef __Globals_include__
 #define __Globals_include__
@@ -15,6 +15,8 @@
 #include "kernel/threads/Scheduler.h"
 #include "kernel/interrupts/IntDispatcher.h"
 #include "kernel/BIOS.h"
+#include "kernel/MemMgmt.h"
+#include "kernel/Paging.h"
 
 #include "devices/PIT.h"
 #include "devices/PCSPK.h"
@@ -32,6 +34,7 @@ extern IntDispatcher    intdis;     // Unterbrechungsverteilung
 extern Scheduler        scheduler;  // Scheduler
 extern BIOS             bios;       // Schnittstelle zum 16-Bit BIOS
 extern unsigned int     total_mem;  // RAM total
+extern MemMgmt          mm;         // Speicherverwaltung
 extern unsigned long    systime;    // wird all 10ms hochgezaehlt
 extern bool             forceSwitch;// gesetzt in Timer-Interrupt,
                                     // wenn Thread-Wechsel erfolgen soll

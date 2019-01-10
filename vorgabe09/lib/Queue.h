@@ -8,7 +8,6 @@
  *                  Anfang ausgetragen.                                      *
  *                                                                           *
  * Autor:           Olaf Spinczyk, TU Dortmund                               *
- *                  Michael Schoettner, HHU, 25.8.2016                       *
  *****************************************************************************/
 
 #ifndef __Queue_include__
@@ -30,8 +29,19 @@ public:
     void enqueue (Chain* item);
     Chain* dequeue ();
     void remove (Chain*);
-    int count ();
-};
+
+    unsigned int size() {
+        unsigned int cnt = 0;
+        Chain *tmp = head;
+
+        while(tmp != 0) {
+            tmp = tmp->next;
+            cnt++;
+        }
+
+        return cnt;
+    }
+ };
 
 #endif
 

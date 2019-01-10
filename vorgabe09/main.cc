@@ -32,7 +32,7 @@ int main() {
     kout.clear ();
 
     // Speicherverwaltung initialisieren
-    mm_init();
+    mm.mm_init();
     
     // Startmeldung ausgeben
     kout << "HHUos 0.9" << endl << "=========" << endl << endl;
