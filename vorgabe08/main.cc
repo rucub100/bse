@@ -41,12 +41,12 @@ int main() {
     // NPE test
     //*((int*)0x0)=0;
 
-    unsigned int* p = pg_alloc_page();
-    *p = 3;
-    kout << "this works" << endl;
-    pg_write_protect_page(p);
-    *p = 4;
-    kout << "this does not work!" << endl;
+    // unsigned int* p = pg_alloc_page();
+    // *p = 3;
+    // kout << "this works" << endl;
+    // //pg_write_protect_page(p);
+    // *p = 4;
+    // kout << "this does not work!" << endl;
 
     // Tastatur-Unterbrechungsroutine einstoepseln
     kb.plugin ();
@@ -62,8 +62,9 @@ int main() {
     // VBEfonts demoApp(&appl_stack[1024]);
     // scheduler.Scheduler::ready(demoApp);
 
-    MemTest memTest(&appl_stack[1024]);
-    scheduler.Scheduler::ready(memTest);
+    unsigned int* stack = new unsigned int[4096];
+    MemTest* memTest = new MemTest(&stack[4096]);
+    scheduler.Scheduler::ready(*memTest);
 
     // Scheduler starten
     scheduler.Scheduler::schedule ();

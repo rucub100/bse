@@ -23,7 +23,7 @@ void MemTest::run() {
         kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "                  " << endl;
     }
 
-    for(int c = 0; c < 100000000; c++);
+    //for(int c = 0; c < 100000000; c++);
 
     for (int i = 1; i < 1000; i+=2) {
         delete addr[i];
@@ -31,7 +31,7 @@ void MemTest::run() {
         kout << endl << "Avail: " << dec << avail << "  Used: " << used << "  Meta: " << meta << "                  " << endl;
     }
 
-    for(int c = 0; c < 100000000; c++);
+    //for(int c = 0; c < 100000000; c++);
 
     for (int i = 0; i < 1000; i+=2) {
         delete addr[i];
