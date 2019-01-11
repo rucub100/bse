@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "devices/Keyboard.h"
+#include "kernel/Globals.h"
 
 /* Tabellen fuer ASCII-Codes (Klassenvariablen) intiialisieren */
 
@@ -124,9 +125,9 @@ bool Keyboard::key_decoded () {
         case 83:
             if (prefix == prefix1)
                 gather.del(true);
-                // TODO: reboot? (for testing only, remove later)
+                // Tastenkombination als gültig akzeptieren und durchreichen für reboot
                 if (gather.ctrl_left() && gather.alt_left())
-                    reboot();
+                    done = true;
             break;
         case 56:
             if (prefix == prefix1)
@@ -259,6 +260,7 @@ Keyboard::Keyboard () :
    set_repeat_rate (0, 0);  
 }
 
+Keyboard::~Keyboard () {}
 
 /*****************************************************************************
  * Methode:         Keyboard::key_hit                                        *
@@ -280,13 +282,24 @@ Keyboard::Keyboard () :
  *                  ueberprueft werden kann.                                 *
  *****************************************************************************/
 Key Keyboard::key_hit () {
-    do {
-        // warte bis byte zur Abholung aus dem Ausgabepuffer bereit ist 
-        while((ctrl_port.inb() & outb) != 1);
-        code = data_port.inb();
-    } while (!key_decoded());
+    Key invalid;  // nicht explizit initialisierte Tasten sind ungueltig
+    
+    int control;
 
-    return gather;
+    do {
+        control = ctrl_port.inb();
+    } while ((control & outb) == 0);
+    
+    // Byte einlesen
+    code = (unsigned char) data_port.inb();
+    
+    // Eingabe von PS/2 Maus ignorieren
+    if (!(control & auxb) && key_decoded()) {
+        lastKey = gather.ascii();
+        return gather;
+    }
+
+    return invalid;
 }
 
 
@@ -297,6 +310,10 @@ Key Keyboard::key_hit () {
  *****************************************************************************/
 void Keyboard::reboot () {
     int status;
+
+    // Schutz für erste Seite ausschalten, um NPE beim folgenden BIOS-Aufruf
+    // zu verhindern
+    pg_allow_page((unsigned int*) 0x472);
 
     // Dem BIOS mitteilen, dass das Reset beabsichtigt war
     // und kein Speichertest durchgefuehrt werden muss.
@@ -376,5 +393,26 @@ void Keyboard::set_led (char led, bool on) {
         }
 
         data_port.outb(_set);
+    }
+}
+
+void Keyboard::plugin () {
+    intdis.assign(IntDispatcher::keyboard, kb);
+    pic.allow(PIC::keyboard);
+}
+
+void Keyboard::trigger() {
+    Key key = key_hit();
+
+    if (key.valid()) {
+        if (key.ctrl_left() &&
+            key.alt_left() &&
+            key.del()) {
+            reboot();
+        }
+
+        kout.setpos(40, 6);
+        kout << key.ascii();
+        kout.flush();
     }
 }

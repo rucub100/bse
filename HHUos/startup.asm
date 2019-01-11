@@ -8,8 +8,16 @@
 ;*                  Es wird alles vorbereitet, damit so schnell wie moeglich  *
 ;*                  die weitere Ausfuehrung durch C-Code erfolgen kann.       *
 ;*                                                                            *
+;*                  Hier erweitert, um BIOS callund Paging-Aktivierung,       *
+;*                  Unterstuetzung des Bluescreens und preemptives            * 
+;*                  Thread-Switching.                                         *
+;*                                                                            *
 ;* Autor:           Olaf Spinczyk, TU Dortmund                                *
+;*                  Michael Schoettner, HHU, 21.12.2018                        *
 ;******************************************************************************
+
+; fuer preemptives Umschalten zwischen Threads
+%include "kernel/threads/Thread.inc"
 
 ; Multiboot-Konstanten
 MULTIBOOT_PAGE_ALIGN	equ	1<<0
@@ -29,7 +37,19 @@ MULTIBOOT_EAX_MAGIC	equ	0x2badb002
 [GLOBAL startup]
 [GLOBAL idt]
 [GLOBAL __cxa_pure_virtual]
-[GLOBAL _ZdlPv]
+[GLOBAL bios_call]
+[GLOBAL get_thread_vars]
+[GLOBAL paging_on]
+[GLOBAL get_page_fault_address]
+[GLOBAL get_int_esp]
+[GLOBAL invalidate_tlb_entry]
+
+; Michael Schoettner:
+; Nachfolgender label steht fuer das 'delete', welches jetzt implementiert
+; wird. Damit der Linker nicht wegen doppelter Definition "meckert"
+; nun auskommentieren!
+; [GLOBAL _ZdlPv]
+
 
 [EXTERN main]
 [EXTERN int_disp]
@@ -125,15 +145,40 @@ _fini_loop:
 _fini_done:
 	ret
 
+; Auslesen von 'int_esp'
+; wird im Bluescreen benoetigt, um den Stacks zuzugreifen
+;
+; C Prototyp: void get_int_esp (unsigned int** esp);
+get_int_esp:
+    mov	eax,[4+esp]     ; esp
+    mov ecx, int_esp
+    mov [eax], ecx
+    ret
+
+
+; Auslesen der Thread-Vars (fuer erzwungenen Thread-Wechsel notwendig)
+; C Prototyp: void get_thread_vars (unsigned int* regs_life,
+;                                   unsigned int* reg_next);
+    get_thread_vars:
+    mov	eax,[4+esp]     ; regs_life
+    mov ebx, regs_life
+    mov [eax], ebx
+    mov	eax,[8+esp]     ; regs_next
+    mov ebx, regs_next
+    mov [eax], ebx
+    ret
+
 ; Default Interrupt Behandlung
 
 ; Spezifischer Kopf der Unterbrechungsbehandlungsroutinen
 
 %macro wrapper 1
 wrapper_%1:
-	push	eax
-	mov	al,%1
-	jmp	wrapper_body
+    pushad          ; alle Register des Threads sichern
+    mov ecx, int_esp    ; stack-zeiger sichern, fuer Zugriff in Bluescreen
+    mov [ecx], esp    
+    mov	al,%1
+    jmp	wrapper_body
 %endmacro
 
 ; ... wird automatisch erzeugt.
@@ -145,17 +190,81 @@ wrapper i
 
 ; Gemeinsamer Rumpf
 wrapper_body:
-	cld             ; das erwartet der gcc so.
-	push	ecx		; Sichern der fluechtigen Register
-	push	edx
-	and	eax,0xff	; Der generierte Wrapper liefert nur 8 Bits
-	push	eax		; Nummer der Unterbrechung uebergeben
-	call	int_disp
-	add	esp,4		; Parameter vom Stack entfernen
-	pop	edx         ; fluechtige Register wieder herstellen
-	pop	ecx
-	pop	eax
-	iret            ; fertig!
+    cld             ; das erwartet der gcc so.
+    push	ecx		; Sichern der fluechtigen Register
+    push	edx
+    and	eax,0xff	; Der generierte Wrapper liefert nur 8 Bits
+    push	eax		; Nummer der Unterbrechung uebergeben
+    call	int_disp; Interrupt-Dispatcher aufrufen
+    add	esp,4		; Nummer der Unterbrechung vom Stack entfernen
+    pop	edx         ; fluechtige Register wieder herstellen
+    pop	ecx
+    cmp     eax,1   ; erzwungener Threadwechsel angefordert?
+    je      preempt; ja
+    popad	        ; alle Register wiederherstellen
+    iret            ; fertig!
+
+;
+; Registersatz des aktuellen Threads sichern (in ThreadState-Struktur)
+;
+preempt:
+
+    mov eax, regs_life
+    mov eax, [eax]
+
+    ; Registerinhalte wurden von PUSHAD auf Stack gelegt
+    mov ebx, [esp]
+    mov	[edi_offset+eax],ebx
+    mov ebx, [esp+4]
+    mov	[esi_offset+eax],ebx
+    mov ebx, [esp+8]
+    mov	[ebp_offset+eax],ebx
+
+    ; esp wird spaeter behandelt
+
+    mov ebx, [esp+16]
+    mov	[ebx_offset+eax],ebx
+    mov ebx, [esp+20]
+    mov	[edx_offset+eax],ebx
+    mov ebx, [esp+24]
+    mov	[ecx_offset+eax],ebx
+    mov ebx, [esp+28]
+    mov	[eax_offset+eax],ebx
+    mov ebx, [esp+40]
+    mov	[efl_offset+eax],ebx
+
+    ; Stack zurueckschneiden und passend machen
+    mov ebx, [esp+32]   ; raddr merken
+    add esp, 44         ; auch INT-Stackframe entfernen
+    push ebx            ; raddr wieder ablegen
+    mov	[esp_offset+eax],esp  ; stack pointer sichern
+
+    ; Registersatz des naechsten Threads laden
+    mov eax, regs_next
+    mov eax, [eax]
+
+    ; Stack-Register laden
+    mov	esp,[esp_offset+eax]
+    mov	ebp,[ebp_offset+eax]
+
+    ; Stackframe zusammenbauen
+    mov	ebx,[efl_offset+eax]    ; flags laden
+    pop ecx                     ; raddr vom Stack holen
+    push ebx                    ; flags auf Stack legen
+    popf                        ; und in eflags einlesen
+    push ecx                    ; raddr wieder ablegen
+
+    ; restliche Register laden
+    mov	ebx,[ebx_offset+eax]
+    mov	esi,[esi_offset+eax]
+    mov	edi,[edi_offset+eax]
+    mov	ecx,[ecx_offset+eax]
+    mov	edx,[edx_offset+eax]
+    mov	eax,[eax_offset+eax]
+
+    sti        ; Interrupts erlauben, evt. von Scheduler::block zuvor abgeschaltet
+    ret
+
 
 ;
 ; setup_idt
@@ -166,7 +275,7 @@ setup_idt:
 	mov	eax,wrapper_0	; ax: niederwertige 16 Bit
 	mov	ebx,eax
 	shr	ebx,16      ; bx: hoeherwertige 16 Bit
-	mov	ecx,256     ; Zaehler
+	mov	ecx,255     ; Zaehler
 .loop:	add	[idt+8*ecx+0],ax
 	adc	[idt+8*ecx+6],bx
 	dec	ecx
@@ -174,6 +283,44 @@ setup_idt:
 
 	lidt	[idt_descr]
 	ret
+
+;
+; bios_call
+;
+; BIOS-Aufruf (siehe BIOS.cc)
+;
+bios_call:
+    lidt    [idt16_descr]
+    pushf
+    pusha
+    call  0x18:0
+    popa
+    popf
+    lidt	[idt_descr]
+    ret
+
+;
+; Paging aktivieren
+;
+; (siehe Paging.cc)
+;
+paging_on:
+    mov eax,[4+esp]     ; Parameter Addr. Page-Dir. ins eax Register
+    mov ebx, cr4
+    or  ebx, 0x10       ; 4 MB Pages aktivieren
+    mov cr4, ebx        ; CR4 schreiben
+    mov cr3, eax        ; Page-Directory laden
+    mov ebx, cr0
+    or  ebx, 0x80010000 ; Paging aktivieren
+    mov cr0, ebx
+    ret
+
+get_page_fault_address:
+    pop ecx     ; raddr speichern
+    mov eax,cr2
+    push eax
+    push ecx    ; raddr wieder auf Stack
+    ret
 
 ;
 ; reprogram_pics
@@ -198,7 +345,7 @@ reprogram_pics:
 	call	delay
 	mov	al,0x02     ; ICW3 Slave: Verbunden mit IRQ2 des Masters
 	out	0xa1,al
-    call	delay
+    	call	delay
 	mov	al,0x03     ; ICW4: 8086 Modus und automatischer EIO
 	out	0x21,al
 	call	delay
@@ -207,7 +354,7 @@ reprogram_pics:
 
 	mov	al,0xff     ; Hardware-Interrupts durch PICs
 	out	0xa1,al     ; ausmaskieren. Nur der Interrupt 2,
-    call	delay	; der der Kaskadierung der beiden
+    	call	delay	; der der Kaskadierung der beiden
 	mov	al,0xfb     ; PICs dient, ist erlaubt.
 	out	0x21,al
 
@@ -227,7 +374,21 @@ delay:
 ; Speichers erfolgen muss.
 
 __cxa_pure_virtual:
-_ZdlPv:
+; Michael Schoettner:
+; Nachfolgender label steht fuer das 'delete', welches jetzt implementiert
+; wird. Damit der Linker nicht wegen doppelter Definition "meckert"
+; nun auskommentieren!
+;_ZdlPv:
+	ret
+
+; Invalidiert eine Seite im TLB. Dies notwendig, falls eine
+; die Bits Present, R/W in einem Seitentabelleneintrag  
+; geaendert werden. Falls die Seite im TLB gespeichert ist
+; wuerde die MMU nichts von diesen Aenderungen erkennen,
+; da die MMU dann nicht auf die Seitentabellen zugreift.
+invalidate_tlb_entry:
+	mov 	eax, [esp+4]
+ 	invlpg 	[eax]
 	ret
 
 [SECTION .data]
@@ -279,6 +440,50 @@ gdt:
 	dw	0x9200		; data read/write
 	dw	0x00CF		; granularity=4096, 386 (+5th nibble of limit)
 
+    dw  0xFFFF      ; 4Gb - (0x100000*0x1000 = 4Gb)
+    dw	0x4000      ; 0x4000 -> base address=0x24000 (siehe BIOS.cc)
+    dw  09A02h      ; 0x2 -> base address =0x24000 (siehe BIOS.cc) und code read/exec;
+    dw  0008Fh      ; granularity=4096, 16-bit code
+
 gdt_48:
 	dw	0x18		; GDT Limit=24, 3 GDT Eintraege
 	dd	gdt         ; Physikalische Adresse der GDT
+
+[SECTION .data]
+;
+; IDT des Realmode ;
+; (Michael Schoettner)
+;
+
+idt16_descr:
+    dw	1024    ; idt enthaelt max. 1024 Eintraege
+    dd	0       ; Adresse 0
+
+;
+; Variablen fuer erzwungenen Thread-Wechsel
+; (werden in der Unterbrechungsbehandlung des PIT gesetzt)
+;
+regs_life:
+    db 0,0,0,0
+regs_next:
+    db 0,0,0,0
+
+
+;
+; Stack-Zeiger fuer Bluescreen
+; (genauerer Stack-Aufbau siehe Bluescreen.cc)
+;
+; |-------------|
+; |    EFLAGS   |
+; |-------------|
+; |      CS     |
+; |-------------|
+; |     EIP     |
+; |-------------|
+; | [ErrorCode] |
+; |-------------|
+; | alle Regs.  |
+; | (PUSHAD)    |
+; |-------------| <-- int_esp
+int_esp:
+    db 0,0,0,0

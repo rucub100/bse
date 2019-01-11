@@ -6,14 +6,16 @@
  * Beschreibung:    Treiber für den Tastaturcontroller des PCs.              *
  *                                                                           *
  * Autor:           Olaf Spinczyk, TU Dortmund                               *
+ *                  Modifikationen, Michael Schoettner, 17.8.2016            *
  *****************************************************************************/
 #ifndef __Keyboard_include__
 #define __Keyboard_include__
 
 #include "devices/Key.h"
 #include "kernel/IOport.h"
+#include "kernel/interrupts/ISR.h"
 
-class Keyboard {
+class Keyboard : public ISR {
     
 private:
     Keyboard(const Keyboard &copy); // Verhindere Kopieren
@@ -64,9 +66,12 @@ private:
     
     
 public:
+   char lastKey;
 
    // Initialisierung der Tastatur.
    Keyboard ();
+
+   ~Keyboard ();
 
    // Tastaturabfrage (vorerst Polling)
    Key key_hit ();
@@ -79,6 +84,12 @@ public:
 
    // Setzt oder loescht die angegebene Leuchtdiode.
    void set_led (char led, bool on);
- };
+
+   // Aktivierung der Unterbrechungen fuer die Tastatur
+   void plugin ();
+    
+   // Unterbrechnungsroutine der Tastatur.
+   void trigger ();
+};
 
 #endif

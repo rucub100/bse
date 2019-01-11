@@ -29,6 +29,7 @@ void PCSPK::play (float f, int len) {
     int cntStart  =  frequency_sec / freq;
     int status;
     
+    cpu.disable_int();
     
     // Zaehler laden
     control.outb (0xB6);            // Zaehler-2 konfigurieren
@@ -38,6 +39,8 @@ void PCSPK::play (float f, int len) {
     // Lautsprecher einschalten
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( status|3 );          // Lautpsrecher Einschalten
+
+    cpu.enable_int();
 
     // Pause
     delay(len);
@@ -55,8 +58,10 @@ void PCSPK::play (float f, int len) {
 void PCSPK::off () {
     int status;
 
+    cpu.disable_int();
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( (status>>2)<<2 );    // Lautsprecher ausschalten
+    cpu.enable_int();
 }
 
 
@@ -86,21 +91,8 @@ inline unsigned int PCSPK::readCounter() {
  * Parameter:       time (delay in ms)                                       *
  *****************************************************************************/
 inline void PCSPK::delay (int time) {
-    unsigned int ms = frequency_sec / 1000;
-
-    for (int i = 0; i < time; i++)
-    {
-        control.outb (0x34);
-        /**
-         * 50ms = 1193180 / 1000 * 50 ~ 59659 < 65535 = 2^16-1 (max for 16 bit)
-         * This is important for the real (slow) hardware!
-         * Without the factor 50 it can miss the counter lower limit/reload 
-         * due to slow execution duration for the readCounter function.
-         */
-        data0.outb(50 * ms);
-        data0.outb((50 * ms) >> 8);
-        while (readCounter() > (49 * ms));
-    }
+    unsigned int ms = systime;
+    while (ms + time > systime);
 }
 
 

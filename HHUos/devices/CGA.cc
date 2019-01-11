@@ -133,6 +133,8 @@ void CGA::clear () {
             *(pos + 2*((j * COLUMNS) + i)) = '\0';
         }
     }
+
+    setpos(0, 0);
 }
 
 
