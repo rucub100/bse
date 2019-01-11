@@ -12,11 +12,15 @@
 #define __PIT_include__
 
 #include "kernel/interrupts/ISR.h"
+#include "kernel/IOport.h"
 
 class PIT : public ISR {
     
 private:
     PIT(const PIT &copy); // Verhindere Kopieren
+
+    IOport control;     // Steuerregister (write only)
+    IOport data0;       // Zaehler-0 Datenregister (read/write)
          
 private:
     enum { time_base = 838 };  /* ns */
@@ -24,7 +28,9 @@ private:
 
 public:
     // Zeitgeber initialisieren.
-    PIT (int us) {
+    PIT (int us) :
+    control(0x43),
+    data0(0x40) {
         interval (us);
     }
     

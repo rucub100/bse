@@ -9,7 +9,6 @@
  *****************************************************************************/
 
 #include "devices/PIT.h"
-#include "kernel/IOport.h"
 #include "kernel/Globals.h"
 
 
@@ -23,9 +22,12 @@
  *                  Interrupt erzeugt werden soll.                           *
  *****************************************************************************/
 void PIT::interval (int us) {
-
-    /* hier muss Code eingefuegt werden */
-    
+    int ns = us * 1000;
+    int count = ns / time_base;
+    // Channel 0, Mode 3, 16-bit, lo/hi
+    control.outb(0x36);
+    data0.outb(count);
+    data0.outb(count >> 8);
 }
 
 
@@ -37,9 +39,8 @@ void PIT::interval (int us) {
  *                  Methode 'trigger' aufgerufen.                            *
  *****************************************************************************/
 void PIT::plugin () {
-
-    /* hier muss Code eingefuegt werden */
-
+    intdis.assign(IntDispatcher::timer, pit);
+    pic.allow(PIC::timer);
 }
 
 
@@ -52,9 +53,21 @@ void PIT::plugin () {
  *                  Variable 'threadSwitch', wird in 'int_disp' behandelt.   *
  *****************************************************************************/
 void PIT::trigger () {
+    static unsigned int ticks = 0;
+    const unsigned int speed = 10;
 
-    /* hier muss Code eingefuegt werden */
-    
+    char timer_sym[] = { '-', '\\', '|', '/' };
+    if (ticks % speed) {
+        int x, y;
+        kout.getpos(x, y);
+        kout.flush();
+        kout.setpos(79, 0);
+        kout << timer_sym[(ticks / speed) % 4] << endl;
+        kout.setpos(x, y);
+    }
+
+    ticks++;
+
     // alle 10ms, Systemzeit weitersetzen
     systime++;
 
