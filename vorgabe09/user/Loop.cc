@@ -24,6 +24,5 @@ void Loop::run() {
         kout.flush();
         count++;
         cpu.enable_int();
-        scheduler.yield();
     }
 }

@@ -68,10 +68,16 @@ int main() {
     
     // Anwendung im Scheduler anmelden
     Application demoApp(&appl_stack[1024]);
-    scheduler.Scheduler::ready(demoApp);
+    scheduler.ready(demoApp);
     
     // Scheduler starten
     scheduler.schedule ();
-
+    
+    cpu.disable_int();
+    kout.setpos(0, 0);
+    kout.clear();
+    kout << "PANIC: main method must not return!!!" << endl;
+    cpu.halt();
+    while(1);
     return 0;
  }
