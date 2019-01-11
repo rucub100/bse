@@ -54,10 +54,10 @@ void PIT::plugin () {
  *****************************************************************************/
 void PIT::trigger () {
     static unsigned int ticks = 0;
-    const unsigned int speed = 10;
+    const unsigned int speed = 100;
 
     char timer_sym[] = { '-', '\\', '|', '/' };
-    if (ticks % speed) {
+    if (ticks % speed == 0) {
         int x, y;
         kout.getpos(x, y);
         kout.flush();
@@ -66,18 +66,23 @@ void PIT::trigger () {
         kout.setpos(x, y);
     }
 
-    ticks++;
-
-    // alle 10ms, Systemzeit weitersetzen
+    // alle 1ms, Systemzeit weitersetzen
     systime++;
 
     // Bei jedem Tick einen Threadwechsel ausloesen.
     // Aber nur wenn der Scheduler bereits fertig intialisiert wurde
     // und ein weiterer Thread rechnen moechte
-    if ( scheduler.isInitialized() ) {
-        if ( scheduler.prepare_preemption() )
+    if ( scheduler.isInitialized() && (ticks % 10 == 0)) {
+        if ( scheduler.prepare_preemption() ) {
             forceSwitch=1;
+        } else {
+            cpu.disable_int();
+            kout.clear();
+            kout << "PANIC: fatal scheduler error" << endl;
+        }
     }
+
+    ticks++;
 }
 
 

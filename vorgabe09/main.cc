@@ -65,7 +65,7 @@ int main() {
     kout << "Bitte <ENTER> druecken um fortzufahren." << endl;
     waitForReturn();
     kout.clear ();
-    
+
     // Anwendung im Scheduler anmelden
     Application demoApp(&appl_stack[1024]);
     scheduler.ready(demoApp);

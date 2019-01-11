@@ -13,6 +13,7 @@
 #include "lib/Queue.h"
 
 void Queue::enqueue (Chain* item) {
+    item->next = 0;
     if (*tail != 0) {
         (*tail)->next = item;
         tail = &(*tail)->next;
