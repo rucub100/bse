@@ -4,9 +4,9 @@
  *                                                                           *
  *---------------------------------------------------------------------------*
  * Beschreibung:    Implementierung eines einfachen Zeitscheiben-Schedulers. *
- *                  Rechenbereite Threads werden in 'readlist' verwaltet.    *
+ *                  Rechenbereite Threads werden in 'readyQueue' verwaltet.  *
  *                                                                           *
- * Autor:           Michael, Schoettner, HHU, 30.8.2016                      *
+ * Autor:           Michael, Schoettner, HHU, 17.1.2019                      *
  *****************************************************************************/
 
 #ifndef __Scheduler_include__
@@ -36,6 +36,9 @@ public:
     // intiialisiert wurde!
     bool isInitialized() { return initialized; }
     
+    // ruft nur der Idle-Thread (erster Thread der vom Scheduler gestartet wird)
+    void setInitialized() { initialized = true; }
+
     // Scheduler starten
     void schedule ();
     

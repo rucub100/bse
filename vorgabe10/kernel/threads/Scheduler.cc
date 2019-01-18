@@ -42,7 +42,6 @@ void Scheduler::schedule () {
     Thread* first;
 
     first = (Thread*) readyQueue.dequeue();
-    initialized = true;
     start (*first); // dieser Aufruf kehrt nie zurück!
 }
 

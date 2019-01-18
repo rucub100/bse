@@ -5,7 +5,7 @@
  *---------------------------------------------------------------------------*
  * Beschreibung:    Wird nur aktiviert, wenn kein Thread arbeiten moechte.   *
  *                                                                           *
- * Autor:           Michael, Schoettner, HHU, 15.12.2016                     *
+ * Autor:           Michael, Schoettner, HHU, 13.8.2016                      *
  *****************************************************************************/
 
 #ifndef __IdleThread_include__
@@ -26,17 +26,12 @@ public:
     
     void run () {
         while (1) {
-            static unsigned int idleTicks = 0;
-            cpu.disable_int();
-            int x, y;
-            kout.getpos(x, y);
-            kout.flush();
-            kout.setpos(60, 0);
-            kout.flush();
-            kout << "IDLE: " << ++idleTicks << endl;
-            kout.flush();
-            kout.setpos(x, y);
-            cpu.enable_int();
+            if (!scheduler.isInitialized()) {
+                scheduler.setInitialized();
+            }
+            
+            // CPU sofort abgeben, damit ein evt.
+            // wartender Thread sofort loslegen kann.
             scheduler.yield ();
         }
     }
