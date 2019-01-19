@@ -25,7 +25,7 @@ IdleThread idle(&IdleThreadStack[1024]);
  * Beschreibung:    Konstruktor des Schedulers. Registriert den              *
  *                  Leerlauf-Thread.                                         *
  *****************************************************************************/
-Scheduler::Scheduler () : lock() {
+Scheduler::Scheduler () : lock(), readyQueue() {
     initialized = false;
 
     // Leerlauf-Thread einfuegen.

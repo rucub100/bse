@@ -61,6 +61,10 @@ public:
     bool isThreadWaiting () {
         return readyQueue.size() > 0 ? true : false;
     }
+
+    unsigned int totalThreads() {
+        return readyQueue.size() + 1;
+    }
     
     // CPU soll aktuellem Thread entzogen werden (Vorbereitungen)
     // Wird von Unterbrechungsroutine des PIT gerufen

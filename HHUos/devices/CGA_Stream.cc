@@ -63,7 +63,13 @@ void CGA_Stream::print_pos(int x, int y, char* string, unsigned char attr) {
     flush();
     getpos(_x, _y);
     setpos(x, y);
-    (*this) << string << endl;
+    char* pos = string;
+    int n = 0;
+    while (*pos) {
+        pos++;
+        n++;
+    }
+    print(string, n, attr);
     setpos(_x, _y);
     lock.free();
 }
@@ -78,10 +84,14 @@ void CGA_Stream::clear_line(int line_num, unsigned char attr) {
     flush();
     getpos(_x, _y);
     setpos(0, line_num);
-    for (int i = 0; i < COLUMNS; i++) {
-        (*this) << ' ';
+    int c = COLUMNS;
+    if (line_num == ROWS - 1) {
+        c--;
+        show(c, line_num, ' ', attr);
     }
-    flush();
+    for (int i = 0; i < c; i++) {
+        print(" ", 1, attr);
+    }
     setpos(_x, _y);
     lock.free();
 }

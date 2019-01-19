@@ -410,9 +410,5 @@ void Keyboard::trigger() {
             key.del()) {
             reboot();
         }
-
-        kout.setpos(40, 6);
-        kout << key.ascii();
-        kout.flush();
     }
 }

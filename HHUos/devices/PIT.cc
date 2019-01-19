@@ -53,16 +53,28 @@ void PIT::plugin () {
  *                  Variable 'threadSwitch', wird in 'int_disp' behandelt.   *
  *****************************************************************************/
 void PIT::trigger () {
-    static unsigned int ticks = 0;
     const unsigned int speed = 100;
+    const unsigned char pit_attr = kout.attribute(CGA::LIGHT_GREY, CGA::BLACK, false);
 
-    char timer_sym[] = { '-', '\\', '|', '/' };
-    if (ticks % speed == 0) {
+    char* timer_sym[] = { "[-]", "[\\]", "[|]", "[/]" };
+    if (systime % speed == 0) {
+        kout.print_pos(kout.COLUMNS - 3, 0, timer_sym[(systime / speed) % 4], pit_attr);
+    }
+    if (systime % 1000 == 0) {
         int x, y;
-        kout.getpos(x, y);
+        int sec = (systime / 1000);
         kout.flush();
-        kout.setpos(79, 0);
-        kout << timer_sym[(ticks / speed) % 4] << endl;
+        kout.getpos(x, y);
+        kout.setpos(kout.COLUMNS - 34, kout.ROWS - 1);
+        kout << "#Threads: " << dec << scheduler.totalThreads();
+        kout << " | Uptime: ";
+        if (sec / 10 == 0) kout << "0";
+        if (sec / 100 == 0) kout << "0";
+        if (sec / 1000 == 0) kout << "0";
+        if (sec / 10000 == 0) kout << "0";
+        if (sec / 100000 == 0) kout << "0";
+        kout << dec << sec << " Sek.";
+        kout.flush(pit_attr);
         kout.setpos(x, y);
     }
 
@@ -72,7 +84,7 @@ void PIT::trigger () {
     // Bei jedem Tick einen Threadwechsel ausloesen.
     // Aber nur wenn der Scheduler bereits fertig intialisiert wurde
     // und ein weiterer Thread rechnen moechte
-    if ( scheduler.isInitialized() && (ticks % 10 == 0)) {
+    if ( scheduler.isInitialized() && (systime % 10 == 0)) {
         if ( scheduler.prepare_preemption() ) {
             forceSwitch=1;
         } else {
@@ -82,8 +94,6 @@ void PIT::trigger () {
             cpu.halt();
         }
     }
-
-    ticks++;
 }
 
 

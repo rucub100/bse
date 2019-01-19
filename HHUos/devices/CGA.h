@@ -21,9 +21,8 @@ class CGA {
 private:
     IOport index_port;      // Auswahl eines Register der Grafikkarte
     IOport data_port;       // Lese-/Schreib-Zugriff auf Register der Grafikk.
-    
-    unsigned int cursor_pos_x;
-    unsigned int cursor_pos_y;
+
+    unsigned char default_attr;
 
     // Copy Konstrutkor unterbinden
     CGA(const CGA &copy);
@@ -35,8 +34,7 @@ public:
     CGA () :
     index_port (0x3d4),
     data_port (0x3d5),
-    cursor_pos_x (0),
-    cursor_pos_y (0) {
+    default_attr (STD_ATTR) {
         CGA_START = (const char*)0xb8000;
 
         // Schalte Attribut Modus für Blinken ein statt mehr Hintergrundfarben
@@ -85,6 +83,14 @@ public:
     
     // Hilfsfunktion zur Erzeugung eines Attribut-Bytes
     unsigned char attribute (CGA::color bg, CGA::color fg, bool blink);
+
+    unsigned char get_default_attr () { return default_attr; }
+    
+    void set_default_attr (unsigned char attr) { default_attr = attr; }
+
+    void set_default_attr (CGA::color bg, CGA::color fg, bool blink) { 
+        default_attr = attribute(bg, fg, blink); 
+    }
 };
 
 #endif
