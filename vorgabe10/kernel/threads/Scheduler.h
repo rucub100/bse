@@ -63,6 +63,13 @@ public:
     // Wird von Unterbrechungsroutine des PIT gerufen
     bool prepare_preemption ();
 
+    // Aufrufer in die Warteschlange der Semaphor-Variable und
+    // auf den nächsten Thread umschalten.
+    void block ();
+
+    // that in die readyQueue und zurückkehren
+    // Umschalten erfolgt später
+    void deblock (Thread& that);
 };
 
 #endif

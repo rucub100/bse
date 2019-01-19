@@ -79,6 +79,7 @@ void PIT::trigger () {
             cpu.disable_int();
             kout.clear();
             kout << "PANIC: fatal scheduler error" << endl;
+            cpu.halt();
         }
     }
 

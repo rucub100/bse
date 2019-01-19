@@ -58,7 +58,7 @@ unsigned int int_disp (unsigned int slot) {
         isr->trigger();
         if (forceSwitch==1) {
             forceSwitch=0;
-            return true;
+            return 1;
         }
     } else {
         cpu.disable_int();
@@ -73,7 +73,7 @@ unsigned int int_disp (unsigned int slot) {
         cpu.halt();
     }
 
-    return false;
+    return 0;
 }
 
 
