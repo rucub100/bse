@@ -13,6 +13,7 @@
 #include "user/Loop.h"
 
 static unsigned int stack[2][1024];
+static Semaphore sem(1);
 
 /*****************************************************************************
  * Methode:         Application::run                                         *
@@ -21,8 +22,8 @@ static unsigned int stack[2][1024];
  *                  ausgeben und terminiert sich selbst.                     *
  *****************************************************************************/
 void Application::run () {
-    Loop l1(&stack[0][1024], 10, 20);
-    Loop l2(&stack[1][1024], 40, 20);
+    Loop l1(&stack[0][1024], 10, 20, &sem);
+    Loop l2(&stack[1][1024], 40, 20, &sem);
     scheduler.ready(l1);
     scheduler.ready(l2);
 

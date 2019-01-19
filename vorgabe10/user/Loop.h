@@ -14,6 +14,7 @@
 #define __loop_include__
 
 #include "kernel/threads/Thread.h"
+#include "lib/Semaphore.h"
 
 class Loop : public Thread {
 
@@ -25,11 +26,14 @@ private:
     unsigned int _x;
     unsigned int _y;
 
+    Semaphore* _s;
+
 public:
-    Loop(unsigned int* stack, unsigned int x, unsigned int y) 
+    Loop(unsigned int* stack, unsigned int x, unsigned int y, Semaphore* s) 
     : Thread(stack), count (0) {
         _x = x;
         _y = y;
+        _s = s;
     }
 
     ~Loop(){}

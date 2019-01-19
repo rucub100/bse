@@ -18,11 +18,13 @@
 
 void Loop::run() {
     for (unsigned int i = 0; i < 1000000000; i++) {
-        cpu.disable_int();
+        _s->p();
+
         kout.setpos(_x, _y);
-        kout << "Loop " << tid  << ": " << count;
+        kout << "Loop [" << tid  << "]: " << count;
         kout.flush();
         count++;
-        cpu.enable_int();
+
+        _s->v();
     }
 }
