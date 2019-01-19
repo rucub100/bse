@@ -28,18 +28,6 @@ private:
     // Copy Konstrutkor unterbinden
     CGA(const CGA &copy);
 
-    void flush_cursor_pos() {
-        unsigned int pos = cursor_pos_x + cursor_pos_y * COLUMNS;
-
-        //high byte
-        index_port.outb(14);
-        data_port.outb((unsigned char) (pos >> 8));
-
-        // low byte
-        index_port.outb(15);
-        data_port.outb((unsigned char) pos);
-    }
-    
 public:
     const char *CGA_START;  // Startadresse des Buldschirmspeichers
     
@@ -50,7 +38,17 @@ public:
     cursor_pos_x (0),
     cursor_pos_y (0) {
         CGA_START = (const char*)0xb8000;
-        flush_cursor_pos();
+
+        // Schalte Attribut Modus für Blinken ein statt mehr Hintergrundfarben
+        IOport vga_adr (0x3c0);
+        IOport vga_arr (0x3c1);
+        IOport vga_is1r (0x3da);
+        vga_is1r.inb();
+        unsigned char tmp = vga_adr.inb();
+        vga_adr.outb(0x10);
+        unsigned char v = vga_adr.inb();
+        vga_adr.outb(v | 0x8);
+        vga_adr.outb(tmp);
     }
     
     // Konstanten fuer die moeglichen Farben im Attribut-Byte.

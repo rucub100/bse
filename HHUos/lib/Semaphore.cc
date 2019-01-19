@@ -11,7 +11,7 @@
 #include "lib/Semaphore.h"
 
 void Semaphore::p() {
-    acquire_spinlock(1);
+    lock.acquire();
     
     if (counter > 0) {
         counter--;
@@ -21,11 +21,11 @@ void Semaphore::p() {
         scheduler.block();
     }
 
-    free_spinlock();
+    lock.free();
 }
 
 void Semaphore::v() {
-    acquire_spinlock(1);
+    lock.acquire();
     
     if (waitQueue.size() > 0) {
         // Prozess aus der waitQueue in die readyQueue
@@ -34,5 +34,5 @@ void Semaphore::v() {
         counter++;
     }
 
-    free_spinlock();
+    lock.free();
 }

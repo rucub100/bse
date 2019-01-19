@@ -15,6 +15,7 @@
 #include "kernel/threads/Dispatch.h"
 #include "kernel/threads/Thread.h"
 #include "lib/Queue.h"
+#include "lib/Spinlock.h"
 
 class Scheduler : public Dispatcher {
     
@@ -27,6 +28,8 @@ private:
     // Scheduler wird evt. von einer Unterbrechung vom Zeitgeber gerufen,
     // bevor er initialisiert wurde
     bool  initialized;
+    
+    Spinlock lock;
     
 public:
     Scheduler ();

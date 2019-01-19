@@ -29,3 +29,59 @@ void CGA_Stream::flush () {
     pos = 0;
 }
 
+void CGA_Stream::flush(unsigned char attr) {
+    print (buffer, pos, attr);
+    pos = 0;
+}
+
+void CGA_Stream::println(char *string) {
+    println(string, STD_ATTR);
+}
+
+
+void CGA_Stream::println(char *string, unsigned char attr) {
+    lock.acquire();
+    flush();
+    char* pos = string;
+    int n = 0;
+    while (*pos) {
+        pos++;
+        n++;
+    }
+    print(string, n, attr);
+    print("\n", 1, STD_ATTR);
+    lock.free();
+}
+
+void CGA_Stream::print_pos(int x, int y, char* string) {
+    print_pos(x, y, string, STD_ATTR);
+}
+
+void CGA_Stream::print_pos(int x, int y, char* string, unsigned char attr) {
+    int _x, _y;
+    lock.acquire();
+    flush();
+    getpos(_x, _y);
+    setpos(x, y);
+    (*this) << string << endl;
+    setpos(_x, _y);
+    lock.free();
+}
+
+void CGA_Stream::clear_line(int line_num) {
+    clear_line(line_num, STD_ATTR);
+}
+
+void CGA_Stream::clear_line(int line_num, unsigned char attr) {
+    int _x, _y;
+    lock.acquire();
+    flush();
+    getpos(_x, _y);
+    setpos(0, line_num);
+    for (int i = 0; i < COLUMNS; i++) {
+        (*this) << ' ';
+    }
+    flush();
+    setpos(_x, _y);
+    lock.free();
+}

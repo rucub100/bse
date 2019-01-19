@@ -113,12 +113,7 @@ void mm_dump_free_list() {
  *****************************************************************************/
 void* MemMgmt::mm_alloc(unsigned int req_size) {
     void* mem = 0;
-    cpu.disable_int();
-    kout.setpos(2, 16);
-    kout << "   mm_alloc: req_size=" << dec << req_size << " Bytes          ";
-    kout.flush();
-    cpu.enable_int();
-    
+        
     // Noch nicht initialisiert?
     if (mm_initialized==0)
         mm_init();
@@ -198,12 +193,6 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
  * Beschreibung:    Einen Speicherblock freigeben.                           *
  *****************************************************************************/
 void MemMgmt::mm_free(void *ptr) {
-    cpu.disable_int();
-    kout.setpos(2, 18);
-    kout << "   mm_free: ptr= " << hex << (unsigned int)ptr << " Bytes      ";
-    kout.flush();
-    cpu.enable_int();
-
     if ((char*)ptr < (char*)MEM_START) {
         // TODO: Bluescreen?!
     }

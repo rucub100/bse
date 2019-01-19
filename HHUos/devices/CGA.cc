@@ -9,7 +9,7 @@
  *                  I/O-Ports der Grafikkarte.                               *
  *                                                                           *
  * Autor:           Olaf Spinczyk, TU Dortmund                               *
- *                  Aenderungen von Michael Schoettner, HHU, 21.8.2016       *
+ *                  Aenderungen von Michael Schoettner, HHU, 26.10.2018      *
  *****************************************************************************/
 #include "devices/CGA.h"
 
@@ -20,17 +20,23 @@
  * Beschreibung:    Setzen des Cursors in Spalte x und Zeile y.              *
  *****************************************************************************/
 void CGA::setpos (int x, int y) {
-    if (0 <= x && x < COLUMNS) {
-        cursor_pos_x = x;
-    }
+    int pos;
+    int high, low;
 
-    if (0 <= y && y < ROWS) {
-        cursor_pos_y = y;
-    }
+    if (x<0 || x>=COLUMNS || y<0 || y>ROWS)
+        return ;
 
-    flush_cursor_pos();
-    //TODO: error screen for x else case?!; scroll for y? buff size?
+    pos  = y * COLUMNS + x;
+    low  = pos & 0xff;
+    high = (pos & 0x3f00) >> 8;
+
+    index_port.outb (14);    // Cursor high auswaehlen
+    data_port.outb( high);   // Daten schreiben
+    
+    index_port.outb (15);    // Cursor low auswaehlen
+    data_port.outb (low);    // Daten schreiben
 }
+
 
 /*****************************************************************************
  * Methode:         CGA::getpos                                              *
@@ -40,8 +46,17 @@ void CGA::setpos (int x, int y) {
  * Rückgabewerte:   x und y                                                  *
  *****************************************************************************/
 void CGA::getpos (int &x, int &y) {
-    x = cursor_pos_x;
-    y = cursor_pos_y;
+    int high, low;
+    int pos;
+
+    index_port.outb (14);    // Cursor high auswaehlen
+    high = data_port.inb (); // Daten lesen
+    index_port.outb (15);    // Cursor low auswaehlen
+    low = data_port.inb ();  // Daten lesen
+
+    pos = (high & 0x3f) <<8 | (low & 0xff);
+    x  = pos % COLUMNS;
+    y  = pos / COLUMNS;
 }
 
 
@@ -57,10 +72,14 @@ void CGA::getpos (int &x, int &y) {
  *      attrib      Attributbyte fuer das Zeichen                            *
  *****************************************************************************/
 void CGA::show (int x, int y, char character, unsigned char attrib) {
-    char *pos = (char*)(CGA_START + 2*(x + y*COLUMNS));
+    int pos;
 
-    *pos = character;
-    *(pos + 1) = attrib;
+    if (x<0 || x>=COLUMNS || y<0 || y>ROWS)
+        return ;
+
+    pos = (y * COLUMNS + x) * 2;
+    *(char*)(CGA_START + pos)              = character;
+    *(unsigned char*)(CGA_START + pos + 1) = attrib;
 }
 
 
@@ -76,29 +95,40 @@ void CGA::show (int x, int y, char character, unsigned char attrib) {
  *      attrib      Attributbyte fuer alle Zeichen der Zeichenkette          *
  *****************************************************************************/
 void CGA::print (char* string, int n, unsigned char attrib) {
-    for (int i = 0; i < n; i++) {
-        char character = *(string + i);
+    int x, y;
+    char* pos;
+    
+    getpos(x, y);
+    pos = (char*)CGA_START + (y * COLUMNS + x) * 2;
 
-        if (character == '\n') {
-            cursor_pos_y++;
-            cursor_pos_x = 0;
-        } else {
-            show(cursor_pos_x++, cursor_pos_y, character, attrib);
+    while(n) {
+        switch (*string) {
+            case '\n':
+                x=0;
+                y++;
+                pos = (char*)CGA_START + (y * COLUMNS + x) * 2;
+                break;
+            default:
+                *pos = *string;
+                *(unsigned char*)(pos + 1) = attrib;
+                pos += 2;
+                x++;
+                if (x >= COLUMNS) {
+                    x=0;
+                    y++;
+                    pos = (char*)CGA_START + (y * COLUMNS + x) * 2;
+                }
+                break;
         }
-
-        // Cursor position anpassen (ohne scroll)
-        if (cursor_pos_x >= COLUMNS) {
-            cursor_pos_x = 0;
-            cursor_pos_y++;
-        }
-
-        while (cursor_pos_y >= ROWS) {
-            cursor_pos_y--;
+        string++;
+        if (y >= ROWS) {
             scrollup();
+            y--;
+            pos = (char*)CGA_START + (y * COLUMNS + x) * 2;
         }
-
-        flush_cursor_pos();
+        n--;
     }
+    setpos (x, y);
 }
 
 
@@ -110,15 +140,26 @@ void CGA::print (char* string, int n, unsigned char attrib) {
  *                  gefuellt.                                                *
  *****************************************************************************/
 void CGA::scrollup () {
-    char *pos = (char*)CGA_START;
-    for (int i = 0; i < COLUMNS; i++) {
-        for (int j = 0; j < ROWS - 1; j++) {
-            *(pos + 2*((j * COLUMNS) + i)) = *(pos + 2*(((j + 1) * COLUMNS) + i));
-        }
+    long *dstptr = (long*)CGA_START;
+    long *srcptr = (long*)(CGA_START + COLUMNS * 2);
+    int counter;
 
-        *(pos + 2*(((ROWS - 1) * COLUMNS) + i)) = '\0';
+    
+    counter = ((ROWS - 1) * COLUMNS * 2) / sizeof (long);
+
+    // Zeilen nach oben schieben
+    while (counter>0) {
+        *(dstptr++) = *(srcptr++);
+        counter --;
     }
-}
+
+    // untere Zeileit Leerzeichen fuellen
+    counter = (COLUMNS * 2) / sizeof (long);
+    while (counter>0) {
+      *(dstptr++) = ((((STD_ATTR << 8) | ' ') << 8) | STD_ATTR) << 8 | ' ';
+      counter--;
+    }
+ }
 
 
 /*****************************************************************************
@@ -127,14 +168,13 @@ void CGA::scrollup () {
  * Beschreibung:    Lösche den Textbildschirm.                               *
  *****************************************************************************/
 void CGA::clear () {
-    char *pos = (char*)CGA_START;
-    for (int i = 0; i < COLUMNS; i++) {
-        for (int j = 0; j < ROWS; j++) {
-            *(pos + 2*((j * COLUMNS) + i)) = '\0';
-        }
-    }
-
-    setpos(0, 0);
+    int x,y;
+    
+    // Bildschirm loeschen
+    for (y=0; y<25; y++)
+        for (x=0; x<80; x++)
+            show (x, y, ' ', STD_ATTR);
+    setpos (0,0);
 }
 
 
@@ -151,13 +191,5 @@ void CGA::clear () {
  *      blink       ywa/no                                                   *
  *****************************************************************************/
 unsigned char CGA::attribute (CGA::color bg, CGA::color fg, bool blink) {
-    unsigned char a = (char)fg;
-    a = a << 4;
-    a = a | (bg << 1);
-
-    if (blink) {
-        a = a | 1;
-    }
-
-    return a;
+    return (blink ? 0x80 : 0) | ((bg & 0x7)<<4) | (fg & 0xf);
 }

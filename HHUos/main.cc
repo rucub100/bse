@@ -35,7 +35,8 @@ int main() {
     mm.mm_init();
     
     // Startmeldung ausgeben
-    kout << "HHUos 0.9" << endl << "=========" << endl << endl;
+    unsigned char attr = kout.attribute(CGA::BLACK, CGA::WHITE, true);
+    kout.println("HHUos 1.0", attr);
     kout << "Freier Speicher: " << (total_mem/1024) << " KB" << endl << endl;
 
     kout << "Unterstuetzte Funktionen:" << endl;

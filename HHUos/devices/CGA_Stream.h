@@ -17,18 +17,35 @@
 
 #include "devices/CGA.h"
 #include "lib/OutStream.h"
+#include "lib/Spinlock.h"
 
 class CGA_Stream : public OutStream, public CGA {
     
 private:
-      CGA_Stream(CGA_Stream &copy); // Verhindere Kopieren
+    CGA_Stream(CGA_Stream &copy); // Verhindere Kopieren
+
+    Spinlock lock;   
 
 public:
-    CGA_Stream () : OutStream(), CGA () { flush(); }
+    CGA_Stream () : OutStream(), CGA (), lock() { flush(); }
     virtual ~CGA_Stream () {}
 
     // Methode zur Ausgabe des Pufferinhalts der Basisklasse StringBuffer.
     virtual void flush ();
+
+    void flush (unsigned char attr);
+
+    void println(char *string);
+
+    void print_pos(int x, int y, char* string);
+
+    void clear_line(int line_num);
+
+    void println(char *string, unsigned char attr);
+
+    void print_pos(int x, int y, char* string, unsigned char attr);
+
+    void clear_line(int line_num, unsigned char attr);
 };
 
 #endif

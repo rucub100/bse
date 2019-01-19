@@ -29,8 +29,6 @@ void PCSPK::play (float f, int len) {
     int cntStart  =  frequency_sec / freq;
     int status;
     
-    cpu.disable_int();
-    
     // Zaehler laden
     control.outb (0xB6);            // Zaehler-2 konfigurieren
     data2.outb (cntStart%256);      // Zaehler-2 laden (Lobyte)
@@ -39,8 +37,6 @@ void PCSPK::play (float f, int len) {
     // Lautsprecher einschalten
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( status|3 );          // Lautpsrecher Einschalten
-
-    cpu.enable_int();
 
     // Pause
     delay(len);
@@ -58,10 +54,8 @@ void PCSPK::play (float f, int len) {
 void PCSPK::off () {
     int status;
 
-    cpu.disable_int();
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( (status>>2)<<2 );    // Lautsprecher ausschalten
-    cpu.enable_int();
 }
 
 
