@@ -28,7 +28,7 @@ public:
     Queue () { head = 0; tail = &head; }
     void enqueue (Chain* item);
     Chain* dequeue ();
-    void remove (Chain*);
+    bool remove (Chain*);
 
     unsigned int size() {
         unsigned int cnt = 0;

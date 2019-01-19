@@ -40,11 +40,12 @@ Chain* Queue::dequeue () {
     return removed;
 }
 
-void Queue::remove (Chain* item) {
+bool Queue::remove (Chain* item) {
     if (item == head) {
         dequeue();
+        return true;
     } else if (item == 0 || head == 0 || head == *tail) {
-        return;
+        return false;
     }
 
     Chain* tmp = head;
@@ -59,10 +60,18 @@ void Queue::remove (Chain* item) {
             tmp->next = item->next;
         } else {
             Chain* p = head;
-            while(p->next != tmp) 
-                p = p->next;
-            tail = &p->next;
+            if (p == tmp) {
+                tail = &head;
+            } else {
+                while(p->next != tmp) 
+                    p = p->next;
+                tail = &p->next;
+            }
             tmp->next = 0;
         }
+
+        return true;
     }
+
+    return false;
 }
