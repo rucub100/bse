@@ -17,7 +17,7 @@
 #include "kernel/interrupts/Bluescreen.h"
 
 
-extern "C" bool int_disp (unsigned int slot);
+extern "C" unsigned int int_disp (unsigned int slot);
 
 
 /*****************************************************************************
@@ -36,7 +36,7 @@ extern "C" bool int_disp (unsigned int slot);
  *                  Interrupt-Routine des PIT setzt 'forceSwitch', falls die *
  *                  Zeitscheibe aufgebraucht ist.                            * 
  *****************************************************************************/
-bool int_disp (unsigned int slot) {
+unsigned int int_disp (unsigned int slot) {
     ISR* isr;
     // https://wiki.osdev.org/8259_PIC#Spurious_IRQs
     if (slot == 39 || slot == 47) { // Master or Slave - IRQ7
@@ -58,7 +58,7 @@ bool int_disp (unsigned int slot) {
         isr->trigger();
         if (forceSwitch==1) {
             forceSwitch=0;
-            return true;
+            return 1;
         }
     } else {
         cpu.disable_int();
@@ -73,7 +73,7 @@ bool int_disp (unsigned int slot) {
         cpu.halt();
     }
 
-    return false;
+    return 0;
 }
 
 

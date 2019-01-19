@@ -42,8 +42,7 @@ void Scheduler::schedule () {
     Thread* first;
 
     first = (Thread*) readyQueue.dequeue();
-    initialized = true;
-    start (*first);
+    start (*first); // dieser Aufruf kehrt nie zurück!
 }
 
 
@@ -163,4 +162,25 @@ bool Scheduler::prepare_preemption () {
     return true;
 }
 
+void Scheduler::block() {
+    // Thread-Wechsel durch PIT verhindern
+    cpu.disable_int ();
 
+    // hole naechsten Thread aus ready-Liste.
+    Thread* next = (Thread*) readyQueue.dequeue();
+
+    // next aktivieren
+    dispatch (*next);
+
+    // Interrupts werden in Thread_switch in Thread.asm wieder zugelassen
+    // dispatch kehr nicht zurueck
+}
+
+void Scheduler::deblock(Thread &that) {
+    // Thread-Wechsel durch PIT verhindern
+    cpu.disable_int ();
+
+    readyQueue.enqueue(&that);
+
+    cpu.enable_int();
+}
