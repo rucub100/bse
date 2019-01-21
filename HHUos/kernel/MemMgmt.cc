@@ -140,6 +140,15 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
             next_fit = next_fit->next;
     }
 
+    // Falls nicht gefunden, wiederhole Suche einmalig ab Anfang
+    if (next_fit->len < req_size) {
+        next_fit = free_list;
+        while (next_fit->len < req_size && 
+        (unsigned int)next_fit->next >= MEM_START) {
+            next_fit = next_fit->next;
+        }
+    }
+
     // Gefunden?
     if (next_fit->len >= req_size) {
         // Genug platz um aufzuspalten?
