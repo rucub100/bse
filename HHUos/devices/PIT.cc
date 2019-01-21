@@ -63,10 +63,14 @@ void PIT::trigger () {
     if (systime % 1000 == 0) {
         int x, y;
         int sec = (systime / 1000);
+        kout.clear_line(24, pit_attr);
         kout.flush();
         kout.getpos(x, y);
-        kout.setpos(kout.COLUMNS - 34, kout.ROWS - 1);
-        kout << "#Threads: " << dec << scheduler.totalThreads();
+        kout.setpos(kout.COLUMNS - 60, kout.ROWS - 1);
+        unsigned int avail, meta, used;
+        mm.mm_usage(avail, meta, used);
+        kout << avail << "/" << used << "/" << meta;
+        kout << " | #Threads: " << dec << scheduler.totalThreads();
         kout << " | Uptime: ";
         if (sec / 10 == 0) kout << "0";
         if (sec / 100 == 0) kout << "0";

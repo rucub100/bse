@@ -29,6 +29,8 @@ void PCSPK::play (float f, int len) {
     int cntStart  =  frequency_sec / freq;
     int status;
     
+    lock.acquire();
+
     // Zaehler laden
     control.outb (0xB6);            // Zaehler-2 konfigurieren
     data2.outb (cntStart%256);      // Zaehler-2 laden (Lobyte)
@@ -37,6 +39,8 @@ void PCSPK::play (float f, int len) {
     // Lautsprecher einschalten
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( status|3 );          // Lautpsrecher Einschalten
+
+    lock.free();
 
     // Pause
     delay(len);
@@ -54,28 +58,11 @@ void PCSPK::play (float f, int len) {
 void PCSPK::off () {
     int status;
 
+    lock.acquire();
     status = (int)ppi.inb ();       // Status-Register des PPI auslesen
     ppi.outb ( (status>>2)<<2 );    // Lautsprecher ausschalten
+    lock.free();
 }
-
-
-/*****************************************************************************
- * Methode:         PCSPK::readCounter                                       *
- *---------------------------------------------------------------------------*
- * Beschreibung:    Zaehler von PIT Channel 0 auslesen.                      * 
- *                  (wird fuer delay benoetigt).                             *
- *                                                                           *
- * Rückgabewerte:   counter                                                  *
- *****************************************************************************/
-inline unsigned int PCSPK::readCounter() {
-    unsigned char lo, hi;
-
-    control.outb (0x0);         // Latch Command
-    lo = data0.inb ();       // Lobyte des Counters auslesen
-    hi = data0.inb ();       // Hibyte des Counters auslesen
-    return (hi << 8) | lo;
-}
-
 
 /*****************************************************************************
  * Methode:         PCSPK::delay                                             *

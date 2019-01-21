@@ -19,6 +19,20 @@ class Application : public Thread {
 private:
     Application (const Application &copy); // Verhindere Kopieren
 
+    void showMainMenu ();
+
+    void clearCenter ();
+
+    void showSubMenuSeparator ();
+
+    void subMenuBluescreentests ();
+
+    void subMenuPlaySound ();
+
+    void subMenuVBE ();
+
+    void subMenuThreadsSemaphore ();
+
 public:
     // Gib dem Anwendungsthread einen Stack.
     Application (unsigned int* stack) : Thread (stack) { }

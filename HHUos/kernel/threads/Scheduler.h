@@ -24,6 +24,7 @@ private:
      
 private:
     Queue readyQueue;   // auf die CPU wartende Threads
+    Queue blockedQueue;
     
     // Scheduler wird evt. von einer Unterbrechung vom Zeitgeber gerufen,
     // bevor er initialisiert wurde
@@ -63,7 +64,7 @@ public:
     }
 
     unsigned int totalThreads() {
-        return readyQueue.size() + 1;
+        return readyQueue.size() + blockedQueue.size() + 1;
     }
     
     // CPU soll aktuellem Thread entzogen werden (Vorbereitungen)

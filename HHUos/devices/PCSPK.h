@@ -16,6 +16,7 @@
 #define __PCSPK_include__
 
 #include "kernel/IOport.h"
+#include "lib/Spinlock.h"
 
 // Note, Frequenz
 #define     C0      130.81
@@ -67,6 +68,8 @@ private:
     IOport data2;       // Zaehler-2 Datenregister
     IOport ppi;         // Status-Register des PPI
 
+    Spinlock lock;
+
     const unsigned int frequency_sec; // TODO: Why not 1193182?
 
     PCSPK (const PCSPK &copy); // Verhindere Kopieren
@@ -81,6 +84,7 @@ public:
 
     // Konstruktor. Initialisieren der Ports.
     PCSPK () :
+    lock(),
     control(0x43),
     data0(0x40),
     data2(0x42),

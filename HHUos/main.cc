@@ -32,7 +32,6 @@ int main() {
     cpu.enable_int ();
 
     // Anwendung im Scheduler anmelden
-    
     unsigned int *appl_stack = (unsigned int *) mm.mm_alloc(1024);
     Application demoApp(&appl_stack[1024]);
     scheduler.ready(demoApp);

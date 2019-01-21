@@ -14,6 +14,7 @@
 #include "devices/Key.h"
 #include "kernel/IOport.h"
 #include "kernel/interrupts/ISR.h"
+#include "lib/Spinlock.h"
 
 class Keyboard : public ISR {
     
@@ -23,6 +24,9 @@ private:
     unsigned char code;     // Byte von Tastatur
     unsigned char prefix;   // Prefix von Tastatur
     Key gather;             // letzter dekodierter Key
+    char lastKey;
+    Spinlock last_key_lock;
+
     char leds;              // Zustand LEDs
 
     // Benutzte Ports des Tastaturcontrollers
@@ -66,8 +70,6 @@ private:
     
     
 public:
-   char lastKey;
-
    // Initialisierung der Tastatur.
    Keyboard ();
 
@@ -90,6 +92,14 @@ public:
     
    // Unterbrechnungsroutine der Tastatur.
    void trigger ();
+
+   char pop_last_key() {
+       last_key_lock.acquire();
+       char tmp = lastKey;
+       lastKey  = 0;
+       last_key_lock.free();
+       return tmp;
+   }
 };
 
 #endif

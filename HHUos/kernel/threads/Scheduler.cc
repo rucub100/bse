@@ -25,7 +25,7 @@ IdleThread idle(&IdleThreadStack[1024]);
  * Beschreibung:    Konstruktor des Schedulers. Registriert den              *
  *                  Leerlauf-Thread.                                         *
  *****************************************************************************/
-Scheduler::Scheduler () : lock(), readyQueue() {
+Scheduler::Scheduler () : lock(), readyQueue(), blockedQueue() {
     initialized = false;
 
     // Leerlauf-Thread einfuegen.
@@ -92,9 +92,11 @@ void Scheduler::exit () {
  *      that        Zu terminierender Thread                                 *
  *****************************************************************************/
 void Scheduler::kill (Thread& that) {
-    lock.acquire();
-    readyQueue.remove (&that);
-    lock.free();
+    cpu.disable_int();
+    if (!readyQueue.remove (&that)) {
+        blockedQueue.remove(&that);
+    }
+    cpu.enable_int();
 }
 
 
@@ -158,6 +160,9 @@ void Scheduler::block() {
     // Thread-Wechsel durch PIT verhindern
     cpu.disable_int ();
 
+    // keep track of blocked threads for counting and kill
+    blockedQueue.enqueue(active());
+
     // hole naechsten Thread aus ready-Liste.
     Thread* next = (Thread*) readyQueue.dequeue();
 
@@ -169,7 +174,9 @@ void Scheduler::block() {
 }
 
 void Scheduler::deblock(Thread &that) {
-    lock.acquire();
-    readyQueue.enqueue(&that);
-    lock.free();
+    cpu.disable_int();
+    if (blockedQueue.remove((Chain*) &that)) {
+        readyQueue.enqueue(&that);
+    }
+    cpu.enable_int();
 }
