@@ -262,9 +262,9 @@ void Application::subMenuMemMgmt () {
     back:
 
     for (int i = 0; i < 10; i++) {
-        if (p[pos] != 0) {
-            delete (void*) p[pos];
-            p[pos] = 0;
+        if (p[i] != 0) {
+            delete (void*) p[i];
+            p[i] = 0;
         } 
     }
 
