@@ -91,6 +91,11 @@ public:
     void set_default_attr (CGA::color bg, CGA::color fg, bool blink) { 
         default_attr = attribute(bg, fg, blink); 
     }
+
+    void disable_cursor() {
+        index_port.outb(0x0A);
+        data_port.outb(0x20);
+    }
 };
 
 #endif

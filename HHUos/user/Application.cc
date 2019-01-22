@@ -47,14 +47,13 @@ void Application::run () {
                 subMenuVBE();
             break;
             case 'm':
-                kout.print_pos(4, 6, "[m] Speicherverwaltung", attr_menu3);
+                subMenuMemMgmt();
             break;
             case 'b':
                 kout.print_pos(4, 7, "[b] Bluescreentests", attr_menu3);
                 subMenuBluescreentests();
             break;
             case 't':
-                kout.print_pos(4, 8, "[t] Threads und Semaphore", attr_menu3);
                 subMenuThreadsSemaphore();
             break;
             default:
@@ -66,7 +65,7 @@ void Application::run () {
 void Application::showMainMenu () {
     clearCenter();
     for (int i = 0; i < kout.COLUMNS - 3; i++) {
-        kout.print_pos(i, 0, " ", attr_menu);
+        kout.print_pos(i, 0, "=", attr_menu);
     }
     kout.print_pos(0, 0, "HHUos 1.0, Ruslan Curbanov, BSE WiSe 2018/19", attr_menu);
     kout.print_pos(4, 4, "[s] Sound abspielen", attr_menu2);
@@ -86,6 +85,192 @@ void Application::showSubMenuSeparator () {
     for (int i = 2; i < kout.ROWS - 2; i++) {
         kout.print_pos(kout.COLUMNS / 2, i, ">", attr_menu2);
     }
+}
+
+unsigned int Application::mmHelperSize (unsigned int size) {
+    switch (size) {
+        case 0:
+            return 4;
+        break;
+        case 1:
+            return 10;
+        break;
+        case 2:
+            return 100;
+        break;
+        case 3:
+            return 1000;
+        break;
+        case 4:
+            return 4000;
+        break;
+        case 5:
+            return 500000;
+        break;
+        case 6:
+            return 5000000;
+        break;
+        default:
+            return 100;
+        break;
+    }
+}
+
+void Application::subMenuMemMgmt_2 (int pos, unsigned int size) {
+    char* s_pos = " ";
+    s_pos[0] = pos + '0';
+    char* s_size = "XXXYY";
+
+    switch (size) {
+        case 0:
+            s_size[0] = ' ';
+            s_size[1] = ' ';
+            s_size[2] = '4';
+            s_size[3] = 'B';
+            s_size[4] = ' ';
+        break;
+        case 1:
+            s_size[0] = ' ';
+            s_size[1] = '1';
+            s_size[2] = '0';
+            s_size[3] = 'B';
+            s_size[4] = ' ';
+        break;
+        case 2:
+            s_size[0] = '1';
+            s_size[1] = '0';
+            s_size[2] = '0';
+            s_size[3] = 'B';
+            s_size[4] = ' ';
+        break;
+        case 3:
+            s_size[0] = '1';
+            s_size[1] = '0';
+            s_size[2] = '0';
+            s_size[3] = '0';
+            s_size[4] = 'B';
+        break;
+        case 4:
+            s_size[0] = ' ';
+            s_size[1] = ' ';
+            s_size[2] = '4';
+            s_size[3] = 'K';
+            s_size[4] = 'B';
+        break;
+        case 5:
+            s_size[0] = '5';
+            s_size[1] = '0';
+            s_size[2] = '0';
+            s_size[3] = 'K';
+            s_size[4] = 'B';
+        break;
+        case 6:
+            s_size[0] = ' ';
+            s_size[1] = ' ';
+            s_size[2] = '5';
+            s_size[3] = 'M';
+            s_size[4] = 'B';
+        break;
+        default:
+            s_size[0] = ' ';
+            s_size[1] = ' ';
+            s_size[2] = '?';
+            s_size[3] = 'B';
+            s_size[4] = ' ';
+        break;
+    }
+
+    kout.print_pos(kout.COLUMNS - 20, kout.ROWS - 4, "[backspace] Zuruck", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 4, "[f] Freispeicherliste", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 5, "[b] Belegte Bloecke", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 8, "[0-9] Position: ", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 14, 8, s_pos, attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 9, "[i] Speicher anlegen", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 10, "[d] Speicher freigeben", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 30, 11, "[s] Groesse: ", attr_menu2);
+    kout.print_pos(kout.COLUMNS - 17, 11, s_size, attr_menu2);
+}
+
+void Application::subMenuMemMgmt () {
+    clearCenter();
+
+    unsigned int s = 0;
+    unsigned int* p = (unsigned int*) mm.mm_alloc(sizeof(unsigned int*) * 10);
+    for (int i = 0; i < 10; i++) { p[i] = 0; }
+    int pos = 0;
+
+    subMenuMemMgmt_2(pos, s);
+
+    while (1) {
+        char last_key = kb.pop_last_key();
+        switch (last_key) {
+            print_free:
+            case 'f':
+                clearCenter();
+                kout.setpos(0, 1);
+                kout.println("Freispeicherliste:");
+                mm.mm_dump_free_list();
+                subMenuMemMgmt_2(pos, s);
+            break;
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                pos = last_key - '0';
+                subMenuMemMgmt_2(pos, s);
+            break;
+            print_used:
+            case 'b':
+                clearCenter();
+                kout.setpos(0, 1);
+                kout.println("Belegte Bloecke:  ");
+                mm.mm_dump_used_list();
+                subMenuMemMgmt_2(pos, s);
+            break;
+            case 'i':
+                if (p[pos] != 0) {
+                    delete (void*) p[pos];
+                }
+
+                p[pos] = (unsigned int) mm.mm_alloc(mmHelperSize(s));
+                goto print_used;
+            break;
+            case 'd':
+                if (p[pos] != 0) {
+                    delete (void*) p[pos];
+                    p[pos] = 0;
+                }
+                goto print_free;
+            break;
+            case 's':
+                s = (s + 1) % 7;
+                subMenuMemMgmt_2(pos, s);
+            break;
+            case '\b':
+                goto back;
+            default:
+            break;
+        }
+    }
+
+    back:
+
+    for (int i = 0; i < 10; i++) {
+        if (p[pos] != 0) {
+            delete (void*) p[pos];
+            p[pos] = 0;
+        } 
+    }
+
+    delete p;
+
+    showMainMenu();
 }
 
 void Application::subMenuBluescreentests () {

@@ -31,6 +31,12 @@ private:
 
     void subMenuVBE ();
 
+    void subMenuMemMgmt ();
+
+    void subMenuMemMgmt_2 (int, unsigned int);
+
+    unsigned int mmHelperSize (unsigned int);
+
     void subMenuThreadsSemaphore ();
 
 public:

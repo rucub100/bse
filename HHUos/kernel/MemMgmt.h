@@ -76,6 +76,8 @@ class MemMgmt {
         // Ausgabe des Heap-Zustands
         void mm_dump_free_list();
 
+        void mm_dump_used_list();
+
         void mm_usage(unsigned int& avail, unsigned int& meta, unsigned int& used) { 
             avail = 0;
             used = mm_heap_size;

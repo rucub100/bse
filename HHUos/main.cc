@@ -28,6 +28,9 @@ int main() {
     // Paging aktivieren
     pg_init ();
 
+    // Cursor abchalten
+    kout.disable_cursor();
+
     // Interrupts erlauben (Tastatur)
     cpu.enable_int ();
 

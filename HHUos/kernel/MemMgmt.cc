@@ -99,10 +99,59 @@ void MemMgmt::mm_init() {
  *---------------------------------------------------------------------------*
  * Beschreibung:    Ausgabe der Freispeicherliste. Zu Debuggingzwecken.      *
  *****************************************************************************/
-void mm_dump_free_list() {
+void MemMgmt::mm_dump_free_list() {
+    FreeBlockMeta* tmp = free_list;
+    unsigned int i = 0;
+    while (tmp != 0) {
+        kout << dec << i << ": @" << tmp << "; len=" << tmp->len << endl;
+        i++;
+        tmp = tmp->next;
+    }
+}
 
-    /* hier muss Code eingefuegt werden */
-    
+void MemMgmt::mm_dump_used_list() {
+    FreeBlockMeta* f = free_list;
+    FreeBlockMeta* s = (FreeBlockMeta*)MEM_START;
+    FreeBlockMeta* u = 0;
+
+    if (f == s) {
+        while (f->next != 0 && (char*)f->next == (char*)f + f->len + 4) {
+            f = f->next;
+        }
+        
+        if (f == 0) {
+            return;
+        } else {
+            u = (FreeBlockMeta*)((char*)f + f->len + 4);
+            f = f->next;
+        }
+    } else {
+        u = s;
+    }
+
+    unsigned int i = 0;
+    while (u != 0) {
+        kout << dec << i << ": @" << u << "; len=" << u->len << endl;
+        i++;
+        if ((char*)u + u->len + 4 < (char*)(MEM_START + mm_heap_size)) {
+            if ((char*)u + u->len + 4 < (char*)f || f == 0) {
+                u = (FreeBlockMeta*)((char*)u + u->len + 4);
+            } else {
+                while (f->next != 0 && (char*)f->next == (char*)f + f->len + 4) {
+                    f = f->next;
+                }
+
+                if (f == 0) {
+                    u = 0;
+                } else {
+                    u = (FreeBlockMeta*)((char*)f + f->len + 4);
+                    f = f->next;
+                }
+            }
+        } else {
+            u = 0;
+        }
+    }
 }
 
 
@@ -152,7 +201,7 @@ void* MemMgmt::mm_alloc(unsigned int req_size) {
     // Gefunden?
     if (next_fit->len >= req_size) {
         // Genug platz um aufzuspalten?
-        if (next_fit->len - (req_size + 4) >= MIN_FREE_BLOCK_SIZE) {
+        if (next_fit->len >= MIN_FREE_BLOCK_SIZE + (req_size + 4)) {
             // belege Speicher
             next_fit->len -= (req_size + 4);
             mem = (char*)next_fit + next_fit->len + 4;
