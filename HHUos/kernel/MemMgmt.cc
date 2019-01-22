@@ -272,10 +272,18 @@ void MemMgmt::mm_free(void *ptr) {
             // Verschmelze mit vorangegangenen Freien Block, 
             // falls sich keine weiteren belegten Blöcke dazwischen befinden
             if (ptr == (char*)prev + prev->len + 8) {
+                // Invalidiere next_fit, falls nötig
+                if (next_fit == prev) {
+                    next_fit = free_list;
+                }
                 prev->len += *((unsigned int*)ptr - 1) + 4;
                 // Falls nun der nächste freie Block ebenfalls anliegt,
                 // dann verschmelze auch diesen
                 if ((char*)prev->next == (char*)prev + prev->len + 4) {
+                    // Invalidiere next_fit, falls nötig
+                    if (next_fit == prev->next) {
+                        next_fit = free_list;
+                    }
                     prev->len += prev->next->len + 4;
                     prev->next = prev->next->next;
                 }
@@ -284,6 +292,10 @@ void MemMgmt::mm_free(void *ptr) {
                 prev->next = tmp;
 
                 if ((char*)tmp->next == (char*)tmp + tmp->len + 4) {
+                    // Invalidiere next_fit, falls nötig
+                    if (next_fit == tmp->next) {
+                        next_fit = free_list;
+                    }
                     tmp->len += tmp->next->len + 4;
                     tmp->next = tmp->next->next;
                 }
@@ -297,6 +309,10 @@ void MemMgmt::mm_free(void *ptr) {
         if ((char*)prev->next < (char*)ptr) {
             // Falls ptr direkt an prev anliegt, dann vergroessere prev
             if ((char*)ptr == (char*)prev + prev->len + 8) {
+                // Invalidiere next_fit, falls nötig
+                if (next_fit == prev) {
+                    next_fit = free_list;
+                }
                 prev->len += tmp->len + 4;
             } else {
                 tmp->next = 0;
@@ -305,13 +321,22 @@ void MemMgmt::mm_free(void *ptr) {
         } else { // Block liegt zwischen prev und prev->next
             // Falls ptr direkt an prev anliegt, dann vergroessere prev
             if ((char*)ptr == (char*)prev + prev->len + 8) {
+                // Invalidiere next_fit, falls nötig
+                if (next_fit == prev) {
+                    next_fit = free_list;
+                }
                 prev->len += tmp->len + 4;
 
                 if ((char*)prev->next == (char*)prev + prev->len + 4) {
+                    // Invalidiere next_fit, falls nötig
+                    if (next_fit == prev->next) {
+                        next_fit = free_list;
+                    }
                     prev->len += prev->next->len + 4;
                     prev->next = prev->next->next;
                 }
             } else if ((char*)tmp + tmp->len + 4 == (char*)prev->next) { // oder falls an ptr an prev->next anliegt
+                next_fit = free_list;
                 tmp->len += prev->next->len + 4;
                 tmp->next = prev->next;
                 prev->next = tmp;
