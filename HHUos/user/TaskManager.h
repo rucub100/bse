@@ -27,37 +27,38 @@ public:
     ~TaskManager(){}
 
     void run() {
-        const unsigned int speed = 10;
+        static unsigned long stamp = 0;
+        const unsigned int interval = 200;
         const unsigned char pit_attr = kout.attribute(CGA::LIGHT_GREY, CGA::BLACK, false);
-
-        char* timer_sym[] = { "[-]", "[\\]", "[|]", "[/]" };
+        unsigned int sec = 0;
 
         int x, y;
         while (1) {
-            if (systime % speed == 0) {
-                kout.print_pos(kout.COLUMNS - 3, 0, timer_sym[(systime / speed) % 4], pit_attr);
-                int sec = (systime / 1000);
-                kout.clear_line(24, pit_attr);
-                kout.get_lock()->acquire();
-                kout.flush();
-                kout.getpos(x, y);
-                kout.setpos(kout.COLUMNS - 60, kout.ROWS - 1);
-                unsigned int avail, meta, used;
-                mm.mm_usage(avail, meta, used);
-                kout << avail << "/" << used << "/" << meta;
-                kout << " | #Threads: " << dec << scheduler.totalThreads();
-                kout << " | Uptime: ";
-                if (sec / 10 == 0) kout << "0";
-                if (sec / 100 == 0) kout << "0";
-                if (sec / 1000 == 0) kout << "0";
-                if (sec / 10000 == 0) kout << "0";
-                if (sec / 100000 == 0) kout << "0";
-                kout << dec << sec << " Sek.";
-                kout.flush(pit_attr);
-                kout.setpos(x, y);
-                kout.get_lock()->free();
+            if (systime > stamp) {
+                stamp = systime + interval;
+                if (sec != (systime / 1000)) {
+                    sec = (systime / 1000);
+                    kout.clear_line(24, pit_attr);
+                    kout.get_lock()->acquire();
+                    kout.getpos(x, y);
+                    kout.setpos(kout.COLUMNS - 60, kout.ROWS - 1);
+                    unsigned int avail, meta, used;
+                    mm.mm_usage(avail, meta, used);
+                    kout << avail << "/" << used << "/" << meta;
+                    kout << " | #Threads: " << dec << scheduler.totalThreads();
+                    kout << " | Uptime: ";
+                    if (sec / 10 == 0) kout << "0";
+                    if (sec / 100 == 0) kout << "0";
+                    if (sec / 1000 == 0) kout << "0";
+                    if (sec / 10000 == 0) kout << "0";
+                    if (sec / 100000 == 0) kout << "0";
+                    kout << dec << sec << " Sek.";
+                    kout.flush(pit_attr);
+                    kout.setpos(x, y);
+                    kout.get_lock()->free();
+                    scheduler.yield();
+                }
             }
-            scheduler.yield();
         }
     }
 };

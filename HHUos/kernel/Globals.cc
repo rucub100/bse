@@ -32,4 +32,4 @@ PCSPK            pcspk;         // PC-Lautsprecher
 CGA_Stream       kout;          // Ausgabe-Strom fuer Kernel
 Keyboard         kb;            // Tastatur
 VESA             vesa;          // VESA-Treiber
-PIT              pit(1000);    // Zeitgeber (1ms)
+PIT              pit(10000);    // Zeitgeber (10ms)

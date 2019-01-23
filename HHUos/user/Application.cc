@@ -57,6 +57,7 @@ void Application::run () {
                 subMenuThreadsSemaphore();
             break;
             default:
+                scheduler.yield();
             break;
         }
     }
@@ -214,6 +215,7 @@ void Application::subMenuMemMgmt () {
                 mm.mm_dump_free_list();
                 kout.get_lock()->free();
                 subMenuMemMgmt_2(pos, s);
+                show_free = true;
             break;
             case '0':
             case '1':
@@ -237,6 +239,7 @@ void Application::subMenuMemMgmt () {
                 mm.mm_dump_used_list();
                 kout.get_lock()->free();
                 subMenuMemMgmt_2(pos, s);
+                show_free = false;
             break;
             case 'i':
                 if (p[pos] != 0) {

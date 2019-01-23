@@ -81,7 +81,6 @@ void CGA_Stream::clear_line(int line_num) {
 void CGA_Stream::clear_line(int line_num, unsigned char attr) {
     int _x, _y;
     lock.acquire();
-    flush();
     getpos(_x, _y);
     setpos(0, line_num);
     int c = COLUMNS;

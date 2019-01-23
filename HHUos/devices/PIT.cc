@@ -53,13 +53,26 @@ void PIT::plugin () {
  *                  Variable 'threadSwitch', wird in 'int_disp' behandelt.   *
  *****************************************************************************/
 void PIT::trigger () {
-    // alle 1ms, Systemzeit weitersetzen
-    systime++;
+    const unsigned char pit_attr = kout.attribute(CGA::LIGHT_GREY, CGA::BLACK, false);
+    char* timer_sym[] = { "[-]", "[\\]", "[|]", "[/]" };
+    
+    if (systime % (10 * 20) == 0) {
+        // Auf keinen Fall getpos/setpos nutzen, nur direkt über show
+        // Sonst sind IO operationen nicht synchronisiert!
+        char* tmp = timer_sym[(systime / 200) % 4];
+        kout.show(kout.COLUMNS - 3, 0, tmp[0], pit_attr);
+        kout.show(kout.COLUMNS - 2, 0, tmp[1], pit_attr);
+        kout.show(kout.COLUMNS - 1, 0, tmp[2], pit_attr);
+    }
+                
+
+    // alle 10ms, Systemzeit weitersetzen
+    systime = systime + 10;
 
     // Bei jedem Tick einen Threadwechsel ausloesen.
     // Aber nur wenn der Scheduler bereits fertig intialisiert wurde
     // und ein weiterer Thread rechnen moechte
-    if ( scheduler.isInitialized() && (systime % 10 == 0)) {
+    if ( scheduler.isInitialized()) {
         if ( scheduler.prepare_preemption() ) {
             forceSwitch=1;
         } else {
