@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "kernel/Globals.h"
+#include "user/TaskManager.h"
 #include "user/Application.h"
 #include "user/Loop.h"
 #include "user/VBEdemo.h"
@@ -17,6 +18,9 @@
 #include "user/PlayTetris.h"
 #include "user/PlayAerodynamic.h"
 
+// Task Manager
+static unsigned int *tm_stack;
+static TaskManager* taskManager;
 
 const unsigned char attr_menu = kout.attribute(CGA::LIGHT_GREY, CGA::BLACK, false);
 const unsigned char attr_menu2 = kout.attribute(CGA::BLACK, CGA::CYAN, false);
@@ -31,6 +35,10 @@ const unsigned char attr_menu4 = kout.attribute(CGA::BLACK, CGA::CYAN, true);
  *                  ausgeben und terminiert sich selbst.                     *
  *****************************************************************************/
 void Application::run () {
+    tm_stack = (unsigned int *) mm.mm_alloc(1024);
+    taskManager = new TaskManager(&tm_stack[1024]);
+    scheduler.ready(*taskManager);
+
     // Hauptmenu aufbauen
     kout.clear();
     showMainMenu();
@@ -54,6 +62,7 @@ void Application::run () {
                 subMenuBluescreentests();
             break;
             case 't':
+                kout.print_pos(4, 8, "[t] Threads und Semaphore", attr_menu3);
                 subMenuThreadsSemaphore();
             break;
             default:
@@ -449,12 +458,41 @@ void Application::subMenuVBE () {
 }
 
 void Application::subMenuThreadsSemaphore () {
+    showSubMenuSeparator();
+    kout.print_pos((kout.COLUMNS / 2) + 4, 4, "[s] Synchronisiert (Semaphore)", attr_menu2);
+    kout.print_pos((kout.COLUMNS / 2) + 4, 5, "[a] Asynchron", attr_menu2);
+    kout.print_pos((kout.COLUMNS / 2) + 4, 6, "[backspace] Zuruck", attr_menu2);
+
+    while (1) {
+        char last_key = kb.pop_last_key();
+        switch (last_key) {
+            case 's':
+                subMenuThreadsSemaphore_sync();
+                goto back;
+            break;
+            case 'a':
+                subMenuThreadsSemaphore_async();
+            case '\b':
+                goto back;
+            break;
+            default:
+            break;
+        }
+    }
+
+    back:
+
+    showMainMenu();
+}
+
+void Application::subMenuThreadsSemaphore_sync () {
     clearCenter();
     unsigned int* stack1 = (unsigned int *) mm.mm_alloc(1024);
     unsigned int* stack2 = (unsigned int *) mm.mm_alloc(1024);
     unsigned int* stack3 = (unsigned int *) mm.mm_alloc(1024);
     Semaphore* sem = new Semaphore(1);
 
+    
     Loop* loop1 = new Loop(
         &(stack1)[1024],
         10,
@@ -471,7 +509,7 @@ void Application::subMenuThreadsSemaphore () {
     
     scheduler.ready(*loop1);
     scheduler.ready(*loop2);
-    scheduler.ready(*playTetris);
+    //scheduler.ready(*playTetris);
 
     kout.print_pos(kout.COLUMNS - 20, kout.ROWS - 4, "[backspace] Zuruck", attr_menu4);
 
@@ -489,7 +527,7 @@ void Application::subMenuThreadsSemaphore () {
 
     back:
 
-    scheduler.kill(*playTetris);
+    //scheduler.kill(*playTetris);
     pcspk.off();
     delete playTetris;
     delete stack3;
@@ -499,6 +537,60 @@ void Application::subMenuThreadsSemaphore () {
     delete stack1;
     delete stack2;
     delete sem;
+}
 
+void Application::subMenuThreadsSemaphore_async () {
+    scheduler.kill(*taskManager);
+    clearCenter();
+    unsigned int* stack1 = (unsigned int *) mm.mm_alloc(1024);
+    unsigned int* stack2 = (unsigned int *) mm.mm_alloc(1024);
+    unsigned int* stack3 = (unsigned int *) mm.mm_alloc(1024);
+
+    
+    Loop* loop1 = new Loop(
+        &(stack1)[1024],
+        10,
+        kout.ROWS / 2,
+        0);
+
+    Loop* loop2 = new Loop(
+        &(stack2)[1024],
+        10 + (kout.COLUMNS / 2),
+        kout.ROWS / 2,
+        0);
+
+    PlayTetris* playTetris = new PlayTetris(&stack3[1024]);
+    
+    scheduler.ready(*loop1);
+    scheduler.ready(*loop2);
+    //scheduler.ready(*playTetris);
+
+    kout.print_pos(kout.COLUMNS - 20, kout.ROWS - 4, "[backspace] Zuruck", attr_menu4);
+
+    while (1) {
+        char last_key = kb.pop_last_key();
+        switch (last_key) {
+            case '\b':
+                scheduler.kill(*loop1);
+                scheduler.kill(*loop2);
+                goto back;
+            default:
+            break;
+        }
+    }
+
+    back:
+
+    //scheduler.kill(*playTetris);
+    pcspk.off();
+    delete playTetris;
+    delete stack3;
+
+    delete loop1;
+    delete loop2;
+    delete stack1;
+    delete stack2;
+
+    scheduler.ready(*taskManager);
     showMainMenu();
 }

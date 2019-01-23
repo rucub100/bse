@@ -16,6 +16,7 @@ void Semaphore::p() {
     if (counter > 0) {
         counter--;
     } else {
+        lock.free();
         // Warte auf v
         waitQueue.enqueue(scheduler.active());
         scheduler.block();

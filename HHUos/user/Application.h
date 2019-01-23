@@ -39,6 +39,10 @@ private:
 
     void subMenuThreadsSemaphore ();
 
+    void subMenuThreadsSemaphore_async ();
+
+    void subMenuThreadsSemaphore_sync ();
+
 public:
     // Gib dem Anwendungsthread einen Stack.
     Application (unsigned int* stack) : Thread (stack) { }
