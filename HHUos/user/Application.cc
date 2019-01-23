@@ -194,6 +194,7 @@ void Application::subMenuMemMgmt_2 (int pos, unsigned int size) {
 void Application::subMenuMemMgmt () {
     clearCenter();
 
+    bool show_free = false;
     unsigned int s = 0;
     unsigned int* p = (unsigned int*) mm.mm_alloc(sizeof(unsigned int*) * 10);
     for (int i = 0; i < 10; i++) { p[i] = 0; }
@@ -207,9 +208,11 @@ void Application::subMenuMemMgmt () {
             print_free:
             case 'f':
                 clearCenter();
+                kout.get_lock()->acquire();
                 kout.setpos(0, 1);
-                kout.println("Freispeicherliste:");
+                kout << "Freispeicherliste:" << endl;
                 mm.mm_dump_free_list();
+                kout.get_lock()->free();
                 subMenuMemMgmt_2(pos, s);
             break;
             case '0':
@@ -228,9 +231,11 @@ void Application::subMenuMemMgmt () {
             print_used:
             case 'b':
                 clearCenter();
+                kout.get_lock()->acquire();
                 kout.setpos(0, 1);
-                kout.println("Belegte Bloecke:  ");
+                kout << "Belegte Bloecke:  " << endl;
                 mm.mm_dump_used_list();
+                kout.get_lock()->free();
                 subMenuMemMgmt_2(pos, s);
             break;
             case 'i':
@@ -239,14 +244,22 @@ void Application::subMenuMemMgmt () {
                 }
 
                 p[pos] = (unsigned int) mm.mm_alloc(mmHelperSize(s));
-                goto print_used;
+                if (show_free) {
+                    goto print_free;
+                } else {
+                    goto print_used;
+                }
             break;
             case 'd':
                 if (p[pos] != 0) {
                     delete (void*) p[pos];
                     p[pos] = 0;
                 }
-                goto print_free;
+                if (show_free) {
+                    goto print_free;
+                } else {
+                    goto print_used;
+                }
             break;
             case 's':
                 s = (s + 1) % 7;
@@ -434,23 +447,22 @@ void Application::subMenuVBE () {
 
 void Application::subMenuThreadsSemaphore () {
     clearCenter();
-    Semaphore* semaphore = new Semaphore(1);
     unsigned int* stack1 = (unsigned int *) mm.mm_alloc(1024);
     unsigned int* stack2 = (unsigned int *) mm.mm_alloc(1024);
     unsigned int* stack3 = (unsigned int *) mm.mm_alloc(1024);
-
+    Semaphore* sem = new Semaphore(1);
 
     Loop* loop1 = new Loop(
         &(stack1)[1024],
         10,
         kout.ROWS / 2,
-        semaphore);
+        sem);
 
     Loop* loop2 = new Loop(
         &(stack2)[1024],
         10 + (kout.COLUMNS / 2),
         kout.ROWS / 2,
-        semaphore);
+        sem);
 
     PlayTetris* playTetris = new PlayTetris(&stack3[1024]);
     
@@ -483,7 +495,7 @@ void Application::subMenuThreadsSemaphore () {
     delete loop2;
     delete stack1;
     delete stack2;
-    delete semaphore;
+    delete sem;
 
     showMainMenu();
 }

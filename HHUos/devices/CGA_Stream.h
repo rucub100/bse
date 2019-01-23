@@ -46,6 +46,8 @@ public:
     void print_pos(int x, int y, char* string, unsigned char attr);
 
     void clear_line(int line_num, unsigned char attr);
+
+    Spinlock* get_lock() { return &lock; }
 };
 
 #endif

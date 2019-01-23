@@ -14,6 +14,7 @@
 #include "kernel/Globals.h"
 #include "kernel/MemMgmt.h"
 #include "user/Application.h"
+#include "user/TaskManager.h"
 
 int main() {
     // Speicherverwaltung initialisieren
@@ -33,6 +34,11 @@ int main() {
 
     // Interrupts erlauben (Tastatur)
     cpu.enable_int ();
+
+    // Task Manager
+    unsigned int *tm_stack = (unsigned int *) mm.mm_alloc(1024);
+    TaskManager taskManager(&tm_stack[1024]);
+    scheduler.ready(taskManager);
 
     // Anwendung im Scheduler anmelden
     unsigned int *appl_stack = (unsigned int *) mm.mm_alloc(1024);

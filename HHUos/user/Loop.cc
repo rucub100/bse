@@ -19,12 +19,13 @@
 void Loop::run() {
     for (unsigned int i = 0; i < 1000000000; i++) {
         _s->p();
-
+        kout.get_lock()->acquire();
         kout.setpos(_x, _y);
         kout << "Loop [" << tid  << "]: " << count;
         kout.flush();
         count++;
-
+        kout.get_lock()->free();
         _s->v();
+        scheduler.yield();
     }
 }
