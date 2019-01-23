@@ -505,11 +505,11 @@ void Application::subMenuThreadsSemaphore_sync () {
         kout.ROWS / 2,
         sem);
 
-    PlayTetris* playTetris = new PlayTetris(&stack3[1024]);
+    PlayAerodynamic* playAerodynamic = new PlayAerodynamic(&stack3[1024]);
     
     scheduler.ready(*loop1);
     scheduler.ready(*loop2);
-    //scheduler.ready(*playTetris);
+    scheduler.ready(*playAerodynamic);
 
     kout.print_pos(kout.COLUMNS - 20, kout.ROWS - 4, "[backspace] Zuruck", attr_menu4);
 
@@ -527,9 +527,9 @@ void Application::subMenuThreadsSemaphore_sync () {
 
     back:
 
-    //scheduler.kill(*playTetris);
+    scheduler.kill(*playAerodynamic);
     pcspk.off();
-    delete playTetris;
+    delete playAerodynamic;
     delete stack3;
 
     delete loop1;
@@ -559,11 +559,11 @@ void Application::subMenuThreadsSemaphore_async () {
         kout.ROWS / 2,
         0);
 
-    PlayTetris* playTetris = new PlayTetris(&stack3[1024]);
+    PlayAerodynamic* playAerodynamic = new PlayAerodynamic(&stack3[1024]);
     
     scheduler.ready(*loop1);
     scheduler.ready(*loop2);
-    //scheduler.ready(*playTetris);
+    scheduler.ready(*playAerodynamic);
 
     kout.print_pos(kout.COLUMNS - 20, kout.ROWS - 4, "[backspace] Zuruck", attr_menu4);
 
@@ -581,9 +581,9 @@ void Application::subMenuThreadsSemaphore_async () {
 
     back:
 
-    //scheduler.kill(*playTetris);
+    scheduler.kill(*playAerodynamic);
     pcspk.off();
-    delete playTetris;
+    delete playAerodynamic;
     delete stack3;
 
     delete loop1;
