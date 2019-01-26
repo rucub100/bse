@@ -16,9 +16,12 @@ void Semaphore::p() {
     if (counter > 0) {
         counter--;
     } else {
-        lock.free();
         // Warte auf v
         waitQueue.enqueue(scheduler.active());
+        // Verhindern, dass nach lock.free aber vor scheduler.block ein anderer thread v aufruft!
+        // Das ist ok, weil in block sowieso disable_int die erste Anweisung ist
+        cpu.disable_int();
+        lock.free();
         scheduler.block();
     }
 
